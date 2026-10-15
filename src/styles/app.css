@@ -1,0 +1,441 @@
+/* ───────── tokens: Stage Daylight ─────────
+   A pale indigo daylight, ink-blue text, and the part colours of the Nadilo design language. */
+:root {
+  --bg-top: #eef2fb;
+  --bg-bottom: #e3e9f5;
+  --ink: #1c2547;
+  --ink-hover: #2a3563;
+  --on-ink: #f6f8fd;
+  --mute: #4f5a7a;
+  --dim: #7d87a6;
+  --card: #ffffff;
+  --line: rgba(28, 37, 71, 0.14);
+  --line-strong: rgba(28, 37, 71, 0.3);
+  --wash: rgba(28, 37, 71, 0.06);
+  --wash-strong: rgba(28, 37, 71, 0.1);
+  --accent: #3448c8;
+  /* Empty steps, on the grid's white card: beats 1 and 3, beats 2 and 4 (a shade darker), the playhead's column
+     (darker still), and a lane given in full (nothing left to place, so nearly the card). Measured against the card:
+     1.25, 1.3 and 1.8 to 1 (0.4.2's were 1.03 against the page, too faint to see without effort). */
+  --slot-a: oklch(93% 0.018 268);
+  --slot-b: oklch(90.5% 0.02 268);
+  --slot-now: oklch(82% 0.04 268);
+  --slot-hover: oklch(87% 0.03 268);
+  --slot-rest: oklch(95% 0.012 268);
+  --kick: #e0603f;
+  --snare: #e3a12f;
+  --hat: #3a9ea4;
+  --bass: #9a4fa8;
+  --chords: #3d9a6c;
+  --melody: #3448c8;
+  --ok: #2f8a5c;
+  --warn: #b4720e;
+  --sour: #c8402f;
+  --font: 'Urbanist Variable', Urbanist, system-ui, sans-serif;
+  --grid-w: min(1240px, calc(100vw - 112px));
+  --cell-h: clamp(60px, 9.2vh, 88px);
+  /* School's column, stage height and the room each part of a level keeps, whatever it shows. */
+  --col: min(1200px, calc(100vw - 96px));
+  --stage-h: clamp(318px, calc(100vh - 420px), 470px);
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; }
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg-bottom);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+button:disabled { cursor: default; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+.app {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 80%);
+  overflow: hidden;
+}
+/* seigaiha waves, very faint, fading up from the bottom */
+.app::before {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0; height: 220px;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24' viewBox='0 0 48 24'%3E%3Cg fill='none' stroke='%231c2547' stroke-opacity='.05' stroke-width='1'%3E%3Cpath d='M0 24a24 24 0 0 1 48 0M7 24a17 17 0 0 1 34 0M14 24a10 10 0 0 1 20 0M-24 12a24 24 0 0 1 48 0M-17 12a17 17 0 0 1 34 0M-10 12a10 10 0 0 1 20 0M24 12a24 24 0 0 1 48 0M31 12a17 17 0 0 1 34 0M38 12a10 10 0 0 1 20 0'/%3E%3C/g%3E%3C/svg%3E");
+  -webkit-mask: linear-gradient(0deg, #000, transparent);
+  mask: linear-gradient(0deg, #000, transparent);
+}
+.screen { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* ───────── title bar (overlay; the traffic lights sit in the left 80px) ───────── */
+.titlebar {
+  height: 44px; flex: none;
+  display: flex; align-items: center;
+  padding: 0 16px 0 88px;
+  position: relative; z-index: 3;
+}
+.titlebar .center { position: absolute; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; }
+.titlebar .center > * { pointer-events: auto; }
+.titlebar .left { display: flex; align-items: center; gap: 2px; }
+.titlebar .right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+/* A pill of a fixed height, with the words on its centre line. An icon's own empty margin is taken back, so the
+   hover pill looks as wide on the icon's side as on the words' side. */
+.titlebar .bar-btn {
+  height: 28px; padding: 0 11px; border-radius: 99px; display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13.5px; font-weight: 600; line-height: 1; color: var(--mute);
+}
+.titlebar .bar-btn > svg { flex: none; width: 16px; height: 16px; }
+.titlebar .bar-btn > svg:first-child { margin-left: -2px; }
+.titlebar .bar-btn > svg.s-ico:first-child { margin-left: -3px; margin-right: -1px; }
+@media (hover: hover) and (pointer: fine) {
+  .titlebar .bar-btn:hover { background: var(--wash); color: var(--ink); }
+}
+.dots { display: flex; gap: 8px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line); display: block; }
+.dots i.on { background: var(--ink); }
+
+.switch { display: inline-flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; color: var(--mute); padding: 6px 4px; }
+.switch .track { width: 32px; height: 18px; border-radius: 99px; background: var(--wash-strong); position: relative; transition: background 0.15s; flex: none; }
+.switch .track::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(28, 37, 71, 0.25); transition: transform 0.15s; }
+.switch[aria-checked='true'] .track { background: var(--ink); }
+.switch[aria-checked='true'] .track::after { transform: translateX(14px); }
+
+/* ───────── buttons ─────────
+   Three weights, all pills of one height so a row of them lines up, and nothing underlined.
+   Primary: solid ink, one per moment. Secondary (the default): an ink hairline. Tertiary: a fainter hairline
+   and muted words, for the ways out. Accent: a secondary in a lane's colour. */
+.btn {
+  height: 46px; padding: 0 22px; border-radius: 99px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  font-size: 15.5px; font-weight: 600; white-space: nowrap;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  transition: background 0.12s, color 0.12s, box-shadow 0.12s, transform 0.08s, opacity 0.15s;
+}
+.btn:hover { background: var(--wash); }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.btn.primary:hover { background: var(--ink-hover); }
+.btn.accent { box-shadow: inset 0 0 0 1.5px var(--c); color: var(--c); }
+.btn.accent:hover { background: color-mix(in srgb, var(--c) 10%, transparent); }
+.btn.tertiary { color: var(--mute); font-weight: 500; box-shadow: inset 0 0 0 1px var(--line); }
+.btn.tertiary:hover { color: var(--ink); background: var(--wash); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.btn.on { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.btn.big { height: 52px; padding: 0 28px; font-size: 16.5px; }
+.btn.small { height: 36px; padding: 0 15px; font-size: 14px; gap: 7px; }
+.btn svg { flex: none; }
+.btn[hidden] { display: inline-flex; visibility: hidden; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--mute); transition: background 0.12s, color 0.12s; }
+.icon-btn:hover:not(:disabled) { background: var(--wash); color: var(--ink); }
+.icon-btn:disabled { opacity: 0.35; }
+
+/* The play button: small, flat, no glow, no ring. */
+.play {
+  width: 60px; height: 60px; border-radius: 50%;
+  display: grid; place-items: center; flex: none;
+  background: var(--ink); color: var(--on-ink);
+  transition: background 0.12s, transform 0.1s;
+}
+.play:hover { background: var(--ink-hover); }
+.play:active { transform: scale(0.96); }
+.play.secondary { background: var(--wash-strong); color: var(--ink); }
+.play.secondary:hover { background: rgba(28, 37, 71, 0.15); }
+.play.large { width: 76px; height: 76px; }
+
+/* ───────── ear training: the journey, in the title bar ─────────
+   One chapter at a time, as School shows its worlds: the name, its levels as dots, an arrow either side. */
+.journey { display: flex; align-items: center; gap: 10px; height: 44px; }
+.journey-chapter { display: flex; align-items: center; gap: 7px; }
+.journey-name { font-size: 15px; font-weight: 750; color: var(--ink); margin-right: 5px; }
+.journey-arrow { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--mute); }
+.journey-arrow:disabled { opacity: 0.3; }
+.journey-arrow svg { width: 17px; height: 17px; }
+.journey-dot { position: relative; width: 13px; height: 13px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line-strong); }
+.journey-dot::after { content: ''; position: absolute; inset: -6px; }
+.journey-dot[data-done] { background: var(--chapter); box-shadow: none; }
+.journey-dot[aria-current] { box-shadow: 0 0 0 2px var(--bg-top), 0 0 0 3.5px var(--ink); }
+@media (hover: hover) and (pointer: fine) {
+  .journey-arrow:not(:disabled):hover { background: var(--wash); color: var(--ink); }
+  .journey-dot:hover { transform: scale(1.25); }
+}
+.journey-arrow:not(:disabled):active { transform: scale(0.96); }
+@media (prefers-reduced-motion: no-preference) {
+  .journey-dot, .journey-arrow { transition: transform 0.12s var(--ease); }
+}
+
+/* ───────── ear training: headline ───────── */
+.head { text-align: center; flex: none; }
+.eyebrow { font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); font-weight: 700; }
+.head h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin-top: 6px; line-height: 1.1; }
+.head .line { font-size: 17px; color: var(--mute); margin-top: 10px; min-height: 24px; }
+.head .line.warn { color: var(--warn); font-weight: 600; }
+.head .line.win { color: var(--ok); font-weight: 600; }
+
+/* ───────── ear training: grid ─────────
+   The steps sit on a white card, like School's instrument and Home's cards, so an empty step has something to be
+   darker than. The names stay outside it on the left, what a check says on the right. */
+.grid { position: relative; isolation: isolate; width: var(--grid-w); margin: 0 auto; flex: none; }
+.grid::before {
+  content: ''; position: absolute; z-index: -1; inset-block: -16px; inset-inline: 134px; border-radius: 18px; background: var(--card);
+  box-shadow: 0 1px 2px rgba(28, 37, 71, 0.05), inset 0 0 0 1px rgba(28, 37, 71, 0.08);
+}
+.grid.two { --cell-h: clamp(70px, 10.8vh, 100px); }
+/* The names and what a check says take the same width either side, so the card sits on the window's centre line. */
+.ruler, .lane { display: grid; grid-template-columns: 150px 1fr 150px; align-items: center; }
+.beats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+.beat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.ruler { height: 22px; }
+.num { font-size: 14px; font-weight: 600; color: var(--mute); text-align: center; }
+.num.beat-num { color: var(--ink); font-weight: 700; }
+.num.tick { font-size: 10px; color: var(--dim); }
+.num[data-now] { color: var(--accent); }
+.lane { margin-top: 10px; }
+.lane-hat { --c: var(--hat); }
+.lane-snare { --c: var(--snare); }
+.lane-kick { --c: var(--kick); }
+.lane-label { height: var(--cell-h); display: flex; flex-direction: column; justify-content: center; text-align: left; padding-right: 12px; }
+.lane-label .name { font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: color 0.08s; }
+.lane-label .name svg { color: var(--c); }
+.lane-label .desc { font-size: 14px; color: var(--mute); margin-top: 1px; }
+.lane-label:hover .name { color: var(--ink-hover); }
+.lane-label[data-hit] .name { color: var(--c); }
+
+/* Flat steps, like GarageBand's step sequencer: no shadows, nothing lifts. Beats 1 and 3 are a shade lighter
+   than 2 and 4, and the playhead's column is darker still. A note fires (flashes) when placed and when played.
+   A note of the player's is solid. A given note is the same colour, softer, with a dot: the note is pinned there.
+   No stripes and no outline, which made fine lines across a whole lane, the kind of pattern that tires the eyes. */
+.cell {
+  height: var(--cell-h); border-radius: 8px; position: relative;
+  background: var(--slot-b);
+  transition: background 0.06s, filter 0.18s;
+}
+.beat:where(:nth-child(odd)) > .cell { background: var(--slot-a); }
+@media (hover: hover) and (pointer: fine) {
+  .lane:not([data-locked]) .cell[data-state='empty']:hover { background: var(--slot-hover); }
+}
+/* A lane given in full has nothing left to place: its empty steps rest, nearly the card, and take no presses. */
+.lane[data-locked] .cell[data-state='empty'] { background: var(--slot-rest); cursor: default; }
+.cell[data-now][data-state='empty'] { background: var(--slot-now); transition: none; }
+.cell[data-state='placed'], .cell[data-state='correct'] { background: var(--c); }
+.cell[data-state='given'] { background: color-mix(in oklch, var(--c) 50%, transparent); }
+.cell[data-state='given']::after {
+  content: ''; position: absolute; inset: 0; margin: auto; width: 8px; height: 8px; border-radius: 50%; background: var(--c);
+}
+.cell[data-state='missed'] { background: transparent; box-shadow: none; outline: 2px dashed var(--c); outline-offset: -2px; }
+.cell[data-state='extra'] { color: var(--mute); }
+.cell[data-state='extra']::after {
+  content: ''; position: absolute; inset: 0; margin: auto; width: 14px; height: 14px;
+  background: linear-gradient(45deg, transparent 45%, currentColor 45% 55%, transparent 55%), linear-gradient(-45deg, transparent 45%, currentColor 45% 55%, transparent 55%);
+}
+.cell[data-hit] { filter: brightness(1.18) saturate(1.1); transition: none; }
+.cell[data-fire] { animation: fire 0.32s ease-out; }
+@keyframes fire { from { filter: brightness(1.35); } to { filter: brightness(1); } }
+.cell.nope { animation: nope 0.18s linear 2; }
+@keyframes nope { 0%, 100% { translate: 0; } 25% { translate: -3px; } 75% { translate: 3px; } }
+
+.lane-stat { display: flex; justify-content: flex-start; padding-left: 36px; }
+.chip { font-weight: 700; font-size: 14px; padding: 5px 12px; border-radius: 99px; display: inline-flex; gap: 5px; align-items: center; }
+.chip.ok { color: var(--ok); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ok) 50%, transparent); }
+.chip.off { color: var(--warn); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 50%, transparent); }
+.chip.stale { opacity: 0.35; }
+.given-tag { font-size: 13.5px; font-weight: 600; color: var(--mute); white-space: nowrap; }
+
+/* ───────── ear training: dock ───────── */
+.dock { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 28px; width: var(--grid-w); margin: 0 auto; flex: none; }
+.dock .side { display: flex; gap: 10px; align-items: center; }
+.dock .left { justify-content: flex-end; }
+.dock .mid { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.dock .mid .caption { font-size: 14px; font-weight: 600; min-width: 120px; text-align: center; }
+.coach { text-align: center; font-size: 14.5px; color: var(--mute); flex: none; min-height: 32px; display: flex; align-items: center; justify-content: center; }
+.coach b { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); font-weight: 800; margin-right: 8px; }
+/* Coach tips off: the coach waits to be asked. */
+.coach-ask {
+  height: 32px; padding: 0 14px; border-radius: 99px; font-size: 13.5px; font-weight: 600; color: var(--mute);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+@media (hover: hover) and (pointer: fine) {
+  .coach-ask:hover { background: var(--wash); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-strong); }
+}
+.coach-ask:active { transform: scale(0.97); }
+
+/* ───────── status bar ───────── */
+.statusbar { height: 52px; flex: none; display: flex; align-items: center; padding: 0 24px; position: relative; z-index: 1; }
+/* Whether sound plays: small, in the title bar beside Sync. A dot, a few words, a meter while something plays. */
+.status { height: 28px; padding: 0 8px; display: flex; align-items: center; gap: 7px; font-size: 12.5px; line-height: 1; color: var(--mute); font-weight: 500; pointer-events: none; white-space: nowrap; }
+.status b { color: var(--mute); font-weight: 600; }
+.status.on b { color: var(--ink); }
+.status .meter { width: 34px; display: none; }
+.status.on .meter { display: block; }
+.led { width: 7px; height: 7px; border-radius: 50%; background: var(--line-strong); flex: none; }
+.status.on .led { background: var(--ok); }
+.meter { width: 90px; height: 3px; border-radius: 2px; background: var(--wash-strong); position: relative; overflow: hidden; flex: none; }
+.meter i { position: absolute; inset: 0; transform-origin: left; transform: scaleX(0); background: var(--ink); border-radius: 2px; display: block; }
+.edit { margin-left: auto; display: flex; gap: 2px; }
+.edit button { height: 34px; padding: 0 12px; border-radius: 99px; color: var(--mute); font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.edit button:hover { background: var(--wash); color: var(--ink); }
+
+/* ───────── reward dialogs ───────── */
+/* Modal: the dim covers the whole window, the title bar strip included. */
+.overlay { position: fixed; inset: 0; background: rgba(28, 37, 71, 0.32); display: grid; place-items: center; z-index: 10; }
+.card {
+  width: 700px; max-width: calc(100vw - 64px); max-height: calc(100vh - 64px); overflow: auto;
+  border-radius: 24px; padding: 34px 38px 30px; color: var(--ink); position: relative;
+  background: var(--card);
+  box-shadow: 0 40px 100px -24px rgba(28, 37, 71, 0.45);
+  z-index: 1;
+  text-align: center;
+}
+.stamp {
+  position: absolute; top: 26px; right: 30px;
+  width: 104px; height: 104px; border-radius: 14px;
+  background: var(--sour); color: #fbf3e6;
+  display: grid; place-items: center; text-align: center;
+  box-shadow: inset 0 0 0 4px var(--sour), inset 0 0 0 6px rgba(251, 243, 230, 0.85);
+}
+.stamp b { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; display: block; }
+.stamp small { font-size: 10.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; display: block; margin-top: 4px; }
+.card .kicker { font-size: 12.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sour); }
+.card h2 { font-size: 42px; font-weight: 800; letter-spacing: -0.02em; margin: 6px 0 0; line-height: 1.05; padding: 0 130px; }
+.card .meta { font-size: 15px; color: var(--mute); font-weight: 500; margin-top: 6px; }
+.listen-for { margin-top: 22px; border-radius: 18px; padding: 20px 22px; background: var(--ink); color: var(--on-ink); text-align: left; }
+.listen-for .lf-top { display: flex; align-items: center; gap: 16px; }
+.listen-for .lf-label { font-size: 12px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--snare); }
+.listen-for .lf-line { font-size: 22px; font-weight: 600; line-height: 1.3; margin-top: 4px; }
+.listen-for .play { width: 52px; height: 52px; background: var(--on-ink); color: var(--ink); }
+.songs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 16px; }
+.song { border-radius: 12px; padding: 12px 14px; background: rgba(246, 248, 253, 0.08); }
+.song b { display: block; font-size: 15.5px; }
+.song span { display: block; font-size: 13.5px; color: #b9c1da; margin-top: 2px; line-height: 1.4; }
+.card .heard { font-size: 16px; line-height: 1.55; color: var(--mute); margin-top: 18px; }
+.card .row { display: flex; justify-content: center; gap: 10px; margin-top: 24px; align-items: center; }
+.recap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 16px; margin-top: 18px; font-size: 14.5px; color: var(--mute); text-align: left; }
+.recap span::before { content: '✓ '; color: var(--ok); font-weight: 800; }
+.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.confetti i { position: absolute; left: 50%; top: 40%; display: block; }
+
+/* ───────── onboarding ───────── */
+.ob { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 48px 48px; }
+.ob h1 { font-size: 54px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.05; }
+.ob h1 em { font-style: normal; color: var(--kick); }
+.ob .sub { font-size: 19px; color: var(--mute); margin-top: 14px; max-width: 560px; line-height: 1.5; }
+.ob .fine { font-size: 14px; color: var(--dim); margin-top: 18px; }
+.ob .actions { display: flex; gap: 12px; margin-top: 34px; justify-content: center; }
+.brand { color: var(--ink); margin-bottom: 44px; line-height: 0; }
+.soundcheck { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 34px; }
+.signal { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.signal .text { font-size: 15.5px; color: var(--mute); min-height: 22px; }
+.signal .text.yes { color: var(--ok); font-weight: 600; }
+.signal .meter { width: 180px; }
+.help { margin-top: 24px; text-align: left; max-width: 520px; border-radius: 16px; padding: 18px 22px; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); font-size: 15.5px; line-height: 1.6; }
+.help ul { margin-top: 6px; padding-left: 20px; color: var(--mute); }
+.help li b { color: var(--ink); }
+
+/* ───────── sync calibration ───────── */
+.sync-stage { display: flex; flex-direction: column; align-items: center; gap: 22px; margin-top: 36px; }
+.pad {
+  width: 168px; height: 168px; border-radius: 50%;
+  background: var(--card); box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 18px; font-weight: 700; color: var(--mute);
+  transition: transform 0.08s, background 0.08s;
+  touch-action: manipulation;
+}
+.pad:hover { background: #f7f9fe; }
+.pad[data-tap] { transform: scale(0.95); background: var(--wash-strong); color: var(--ink); }
+.taps { display: flex; gap: 8px; }
+.taps i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+.taps i.on { background: var(--kick); }
+.pulse { width: 120px; height: 120px; border-radius: 50%; background: var(--card); box-shadow: inset 0 0 0 1px var(--line); transition: transform 0.12s, background 0.12s; }
+.pulse[data-hit] { background: var(--kick); transform: scale(1.12); transition: none; }
+.nudge { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--mute); font-weight: 600; }
+.nudge input { width: 340px; accent-color: var(--ink); }
+.nudge .step { height: 40px; padding: 0 14px; border-radius: 99px; display: inline-flex; align-items: center; gap: 6px; box-shadow: inset 0 0 0 1px var(--line-strong); font-weight: 700; color: var(--ink); touch-action: manipulation; }
+.nudge .step:hover { background: var(--wash); }
+.nudge .step:active { background: var(--wash-strong); }
+
+/* ───────── home ───────── */
+.home { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; padding: 18px 56px 0; overflow: auto; }
+.home-hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: clamp(8px, 4vh, 40px); }
+.home-mark { color: var(--ink); line-height: 0; margin-bottom: 18px; }
+.home h1 { font-size: 44px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.05; }
+.home-kicker { font-size: 12.5px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--warn); margin-bottom: 10px; }
+.home .line { font-size: 17px; color: var(--mute); margin: 10px 0 24px; }
+.section-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; color: var(--mute); }
+.worlds { width: min(1080px, 100%); display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 12px; }
+.world-card {
+  border-radius: 16px; padding: 14px 14px 12px; text-align: left; background: var(--card);
+  box-shadow: 0 1px 2px rgba(28, 37, 71, 0.05), inset 0 0 0 1px rgba(28, 37, 71, 0.08);
+  display: flex; flex-direction: column; gap: 10px; min-height: 108px;
+}
+.world-card .wc-top { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; }
+.world-card .wc-top i { width: 10px; height: 10px; border-radius: 3px; background: var(--w); display: block; }
+.world-card .wc-n { margin-left: auto; font-size: 12.5px; font-weight: 700; color: var(--dim); font-variant-numeric: tabular-nums; }
+.world-card .wc-levels { display: flex; flex-direction: column; gap: 2px; }
+.world-card .wc-level { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--mute); padding: 4px 6px; margin: 0 -6px; border-radius: 8px; text-align: left; }
+.world-card .wc-level:hover:not(:disabled) { background: var(--wash); color: var(--ink); }
+.world-card .wc-level:disabled { color: var(--dim); opacity: 0.6; }
+.world-card .wc-level .mark { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--line-strong); flex: none; display: grid; place-items: center; color: #fff; }
+.world-card .wc-level.done .mark { background: var(--w); box-shadow: none; }
+.world-card .wc-level.here { color: var(--ink); }
+.world-card .wc-level.here .mark { box-shadow: inset 0 0 0 2px var(--ink); }
+.world-card .wc-level .s-stars { margin-left: auto; }
+/* Make it yours: a diamond in place of the round mark, gold once the player has kept their change. */
+.world-card .wc-level.yours .mark { box-shadow: none; color: var(--line-strong); width: 14px; height: 14px; }
+.world-card .wc-level.yours .mark .s-ico { width: 14px; height: 14px; }
+.world-card .wc-level.yours.done .mark { background: none; color: oklch(80% 0.14 82); }
+
+/* Today's twist: one small change to the player's own song a day, and the sampler of days sewn. */
+.today-wrap { width: min(760px, 100%); margin-top: 22px; }
+.today {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 16px; row-gap: 10px;
+  padding: 14px 16px 14px 20px; border-radius: 16px; background: var(--card); text-align: left;
+  box-shadow: 0 1px 2px rgba(28, 37, 71, 0.05), inset 0 0 0 1px rgba(28, 37, 71, 0.08);
+}
+.today-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.today-kicker { font-size: 11.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: oklch(52% 0.11 74); }
+.today-goal { font-size: 17px; font-weight: 650; color: var(--ink); }
+.today-actions { display: flex; gap: 8px; }
+.sampler { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 3px; color: oklch(80% 0.14 82); }
+.sampler i { display: grid; }
+.sampler .s-ico { width: 14px; height: 14px; }
+.ear-section { width: min(1080px, 100%); margin: 48px 0 40px; }
+.ear-section .section-head .btn { letter-spacing: 0; text-transform: none; }
+/* Each chapter is a group of its own: its name with the colour of the sound it brings in, then its levels. */
+.chapter-row { margin-top: 34px; }
+.section-head + .chapter-row { margin-top: 22px; }
+.chapter-name { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--ink); margin-bottom: 14px; }
+.chapter-name i { width: 10px; height: 10px; border-radius: 3px; background: var(--chapter); display: block; }
+.tiles { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.tile {
+  min-height: 132px; border-radius: 14px; padding: 12px 12px 10px;
+  display: flex; flex-direction: column; gap: 8px; text-align: left;
+  background: var(--card); box-shadow: inset 0 0 0 1px rgba(28, 37, 71, 0.08);
+  transition: background 0.12s, box-shadow 0.12s;
+}
+.tile:hover { box-shadow: inset 0 0 0 1px var(--line-strong); }
+.tile.up-next { box-shadow: inset 0 0 0 2px var(--kick); }
+.tile-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.tile-n { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--dim); }
+.tile.done .tile-n { color: var(--mute); }
+.tile-tag { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 800; white-space: nowrap; }
+.tile-tag.next { color: #fff; background: var(--kick); padding: 2px 8px; border-radius: 99px; }
+.tile-check { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--ok); color: #fff; }
+.tile-name { font-size: 14.5px; font-weight: 700; line-height: 1.25; color: var(--ink); min-height: 36px; }
+.tile:not(.done) .tile-name { color: var(--mute); font-weight: 600; }
+.tile-how { font-size: 12.5px; font-weight: 700; color: var(--dim); display: inline-flex; align-items: center; gap: 4px; }
+.tile-how.first { color: var(--ok); }
+.tile-how.peeked { color: var(--warn); }
+.thumb { display: grid; gap: 2px; margin-top: auto; }
+.thumb-row { display: grid; grid-template-columns: repeat(16, 1fr); gap: 1px; }
+.thumb-row i { height: 6px; border-radius: 1.5px; background: var(--slot-b); display: block; }
+.thumb-row i.on { background: var(--c); }
+.thumb-hat { --c: var(--hat); }
+.thumb-snare { --c: var(--snare); }
+.thumb-kick { --c: var(--kick); }
+

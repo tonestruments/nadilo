@@ -1,0 +1,80 @@
+{
+  "floorHz": 80.0,
+  "minFundamentalHz": 55.0,
+  "sounds": {
+    "kick-round": {
+      "role": "kick",
+      "label": "Round",
+      "file": "kick-round.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 0.45
+    },
+    "kick-deep": {
+      "role": "kick",
+      "label": "Deep",
+      "file": "kick-deep.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 0.45
+    },
+    "snare-snap": {
+      "role": "snare",
+      "label": "Snap",
+      "file": "snare-snap.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 0.3
+    },
+    "snare-rim": {
+      "role": "snare",
+      "label": "Rim",
+      "file": "snare-rim.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 0.17
+    },
+    "hat-bright": {
+      "role": "hat",
+      "label": "Bright",
+      "file": "hat-bright.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 0.25
+    },
+    "hat-shaker": {
+      "role": "hat",
+      "label": "Shaker",
+      "file": "hat-shaker.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 0.2
+    },
+    "bass": {
+      "role": "bass",
+      "label": "Bass guitar",
+      "file": "bass.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 3.0,
+      "root": 36
+    },
+    "keys": {
+      "role": "keys",
+      "label": "Guitar",
+      "file": "keys.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 3.2,
+      "root": 60
+    },
+    "pad": {
+      "role": "pad",
+      "label": "Pad",
+      "file": "pad.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 4.5,
+      "root": 60
+    },
+    "kalimba": {
+      "role": "lead",
+      "label": "Kalimba",
+      "file": "kalimba.wav",
+      "source": "scripts/samples/synth.py",
+      "seconds": 2.4,
+      "root": 72
+    }
+  }
+}

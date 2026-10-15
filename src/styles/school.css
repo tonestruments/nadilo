@@ -1,0 +1,570 @@
+/* ═══════════════════════ Nadilo School ═══════════════════════
+   Written to good-css.com: OKLCH tokens, logical properties, hover only where hover exists, press feedback on
+   everything pressable, motion only for those who have not asked for less.
+
+   Nadilo has one theme, so the tokens are plain values, not light-dark() pairs (good-css keeps those for a page with
+   a dark mode). It also keeps School working on the oldest Macs Nadilo supports: macOS 11 runs Safari 16.6 at most,
+   and light-dark() needs 17.5. The newest feature here is color-mix(), from Safari 16.2.
+
+   The page is Stage Daylight, like the rest of the app. The instrument is a piece of indigo cloth (the app icon's
+   indigo, its kinari thread): the one bold material on screen, an object rather than a surface. Nothing on the cloth
+   is a box: empty time is cloth, a note is a stitch. */
+
+:root {
+  /* Colour */
+  --s-ink: oklch(27.5% 0.064 270.6);
+  --s-ink-hover: color-mix(in oklch, var(--s-ink), white 12%);
+  --s-on-ink: oklch(98.4% 0.006 271);
+  --s-mute: oklch(47.1% 0.054 269.6);
+  --s-dim: oklch(62.6% 0.048 271);
+  --s-card: oklch(100% 0 none);
+  --s-line: color-mix(in oklch, var(--s-ink) 14%, transparent);
+  --s-line-strong: color-mix(in oklch, var(--s-ink) 30%, transparent);
+  --s-wash: color-mix(in oklch, var(--s-ink) 6%, transparent);
+  --s-wash-strong: color-mix(in oklch, var(--s-ink) 11%, transparent);
+  --s-page: oklch(96.1% 0.013 266.7);
+  --s-gold: oklch(75.3% 0.144 76.4);
+  /* Make it yours: whatever the player changed is gold thread. Lighter than the stars' gold, so it reads on the cloth. */
+  --s-yours: oklch(80% 0.14 82);
+  --s-yours-ink: oklch(52% 0.11 74);
+  --s-yours-wash: color-mix(in oklch, var(--s-yours) 32%, transparent);
+  --s-ok: oklch(56.7% 0.112 157.5);
+  --s-cloth: oklch(30.2% 0.092 270.1);
+  --s-cloth-deep: oklch(25.5% 0.08 270.4);
+  --s-thread: oklch(92.6% 0.031 88.4);
+  --s-shadow:
+    0 1px 2px oklch(27.5% 0.064 270.6 / 0.06),
+    0 16px 40px -18px oklch(27.5% 0.064 270.6 / 0.38);
+  /* Part colours, bright enough to read on the cloth. */
+  --s-kick: oklch(73.4% 0.166 35.4);
+  --s-snare: oklch(82.4% 0.14 80.8);
+  --s-hat: oklch(76.2% 0.106 199.8);
+  --s-bass: oklch(72.8% 0.141 315.6);
+  --s-chords: oklch(74.5% 0.122 160.4);
+  --s-melody: oklch(76% 0.12 275);
+
+  /* One fluid scale for type and space, from the smallest window (1180 px) to a wide one (1600 px). */
+  --s-narrow: 73.75;
+  --s-wide: 100;
+  --s-size-narrow: 1;
+  --s-size-wide: 1.0625;
+  --s-ratio-narrow: 1.2;
+  --s-ratio-wide: 1.24;
+  --s-fluid: clamp(0rem, (100vw - var(--s-narrow) * 1rem) / (var(--s-wide) - var(--s-narrow)), 1rem);
+  --s-at-narrow: calc(var(--s-size-narrow) * (1rem - var(--s-fluid)));
+  --s-at-wide: calc(var(--s-size-wide) * var(--s-fluid));
+  --s-step--1: calc(var(--s-step-0) / var(--s-ratio-narrow));
+  --s-step-0: calc(var(--s-at-narrow) + var(--s-at-wide));
+  --s-step-1: calc(var(--s-at-narrow) * var(--s-ratio-narrow) + var(--s-at-wide) * var(--s-ratio-wide));
+  --s-step-2: calc(var(--s-at-narrow) * pow(var(--s-ratio-narrow), 2) + var(--s-at-wide) * pow(var(--s-ratio-wide), 2));
+  --s-step-3: calc(var(--s-at-narrow) * pow(var(--s-ratio-narrow), 3) + var(--s-at-wide) * pow(var(--s-ratio-wide), 3));
+  --s-step-4: calc(var(--s-at-narrow) * pow(var(--s-ratio-narrow), 4) + var(--s-at-wide) * pow(var(--s-ratio-wide), 4));
+  --s-space-xs: calc(0.375 * var(--s-step-0));
+  --s-space-s: calc(0.625 * var(--s-step-0));
+  --s-space-m: var(--s-step-0);
+  --s-space-l: calc(1.5 * var(--s-step-0));
+
+  /* Motion */
+  --s-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --s-press: 140ms;
+
+  /* The column every School screen reads down, and the room a lane's name takes on the cloth. */
+  --s-gutter: 3rem;
+  --s-content: 76rem;
+  --s-label: 7.25rem;
+}
+
+/* A part's colour, for whatever is inside it. */
+.c-kick { --c: var(--s-kick); }
+.c-snare { --c: var(--s-snare); }
+.c-hat { --c: var(--s-hat); }
+.c-bass { --c: var(--s-bass); }
+.c-chords { --c: var(--s-chords); }
+.c-melody { --c: var(--s-melody); }
+.c-drums { --c: var(--s-kick); }
+
+.s-ico { inline-size: 1.2em; block-size: 1.2em; flex: none; }
+
+/* ── buttons: pills of one height; primary is solid ink, one per moment ── */
+.s-sbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
+  block-size: 2.75rem; padding-inline: 1.15rem; border-radius: 99px;
+  font-size: var(--s-step-0); font-weight: 650; white-space: nowrap; color: var(--s-ink);
+  box-shadow: inset 0 0 0 1px var(--s-line-strong);
+}
+.s-sbtn.s-primary { background: var(--s-ink); color: var(--s-on-ink); box-shadow: none; }
+.s-sbtn.s-ghost { color: var(--s-mute); box-shadow: inset 0 0 0 1px var(--s-line); }
+.s-sbtn.s-big { block-size: 3.25rem; padding-inline: 1.6rem; font-size: var(--s-step-1); }
+.s-sbtn.s-keep { background: var(--s-yours); color: var(--s-ink); box-shadow: none; font-weight: 750; }
+.s-sbtn:disabled { opacity: 0.4; }
+.s-sbtn[aria-pressed='true'] { background: var(--s-ink); color: var(--s-on-ink); box-shadow: none; }
+:is(.s-sbtn, .s-sicon, .s-chip, .s-seg, .s-splay, .s-tile, .s-swatch, .s-band, .s-block, .s-jn)[data-hidden] { visibility: hidden; }
+.s-sicon {
+  position: relative; display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem;
+  border-radius: 50%; color: var(--s-mute);
+}
+.s-sicon::after { content: ''; position: absolute; inset: min(0px, (100% - 44px) / 2); }
+.s-sicon:disabled { opacity: 0.3; }
+.s-splay {
+  display: grid; place-items: center; inline-size: 3.75rem; block-size: 3.75rem; flex: none;
+  border-radius: 50%; background: var(--s-ink); color: var(--s-on-ink);
+}
+
+/* ── the screen: one column, read top to bottom; every part keeps its size in every level ── */
+.s-school-screen { color: var(--s-ink); }
+.s-school {
+  flex: 1; min-block-size: 0;
+  display: grid;
+  grid-template-columns:
+    [full-start] minmax(var(--s-gutter), 1fr)
+    [content-start] min(100% - var(--s-gutter) * 2, var(--s-content)) [content-end]
+    minmax(var(--s-gutter), 1fr) [full-end];
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  row-gap: var(--s-space-s);
+  padding-block: 0 var(--s-space-m);
+}
+.s-school > * { grid-column: content; }
+
+/* the head: world · level, the title, and one line: the goal, or once it is met, the real name of what was done */
+.s-head { display: grid; grid-template-rows: auto 2.9rem; justify-items: center; align-content: end; text-align: center; padding-block-start: 1rem; }
+.s-head h1 { font-size: var(--s-step-4); font-weight: 750; letter-spacing: -0.025em; line-height: 1.08; margin-block-end: 0.3rem; }
+/* The goal on the centre line, whatever marks it: the tick to its left, the count and the stars to its right. */
+.s-goal {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: 0.7rem;
+  inline-size: 100%; color: var(--s-mute);
+}
+.s-goal-side { display: flex; align-items: center; gap: 0.6rem; min-inline-size: 0; }
+.s-goal-side:first-child { justify-content: flex-end; }
+.s-goal-text { font-size: var(--s-step-1); font-weight: 550; line-height: 1.3; white-space: nowrap; }
+.s-head[data-done] .s-goal-text { font-size: var(--s-step-0); color: var(--s-ink); }
+.s-goal-text b { color: var(--world); font-weight: 800; }
+.s-goal-tick { display: grid; place-items: center; inline-size: 1.6rem; block-size: 1.6rem; flex: none; border-radius: 50%; background: var(--s-ok); color: white; font-size: 0.75rem; }
+.s-count {
+  display: inline-grid; place-items: center; min-inline-size: 2.75rem; block-size: 1.6rem; padding-inline: 0.6rem; flex: none;
+  border-radius: 99px; background: var(--s-wash); font-size: var(--s-step--1); font-weight: 750; color: var(--s-mute);
+  font-variant-numeric: tabular-nums;
+}
+.s-goal .s-stars { flex: none; }
+.s-head[data-yours] .s-goal-text b { color: var(--s-yours-ink); }
+.s-head[data-yours] .s-goal-tick { background: var(--s-yours); color: var(--s-ink); }
+/* How many changes are the player's: where the stars sit in a level that rebuilds. */
+.s-changes {
+  display: inline-grid; place-items: center; block-size: 1.6rem; padding-inline: 0.7rem; flex: none;
+  border-radius: 99px; background: var(--s-yours-wash); color: var(--s-ink);
+  font-size: var(--s-step--1); font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.s-changes[data-none] { background: var(--s-wash); color: var(--s-mute); }
+
+.s-stars { display: inline-flex; gap: 0.05rem; color: var(--s-line-strong); vertical-align: middle; }
+.s-stars i { display: grid; }
+.s-stars i[data-on] { color: var(--s-gold); }
+.s-stars .s-ico { inline-size: 1.05em; block-size: 1.05em; }
+
+/* the strip: the four bars, small, as a map */
+/* The strip and its arrows: the arrows sit in the margins either side, so the strip lines up with the cloth. */
+.s-school > .s-stripwrap { grid-column: full; display: grid; grid-template-columns: subgrid; align-items: center; }
+.s-stripwrap > .s-strip { grid-column: content; }
+.s-strip-arrow:first-child { justify-self: end; margin-inline-end: 0.55rem; }
+.s-strip-arrow:last-child { justify-self: start; margin-inline-start: 0.55rem; }
+.s-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-space-s); block-size: 5rem; }
+.s-tile {
+  position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr); row-gap: 0.2rem; min-block-size: 0; overflow: clip;
+  padding: 0.4rem 0.65rem 0.45rem; border-radius: 0.9rem; text-align: start;
+  background: var(--s-cloth); color: var(--s-thread); box-shadow: var(--s-shadow);
+}
+.s-tile:not([data-counts]):not(.s-sections .s-tile) { background: var(--s-cloth-deep); }
+.s-tile[aria-current] { outline: 2.5px solid var(--s-ink); outline-offset: 3px; }
+.s-tile-top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.s-tile-name { font-size: var(--s-step--1); font-weight: 750; }
+.s-sewn {
+  display: grid; place-items: center; inline-size: 1.15rem; block-size: 1.15rem; border-radius: 50%;
+  background: var(--world); color: white; font-size: 0.65rem; visibility: hidden;
+}
+.s-tile[data-sewn] .s-sewn { visibility: visible; }
+/* Make it yours: a bar the level does not change is the song's: heard in the loop, not opened. */
+.s-tile[data-locked] { background: var(--s-cloth-deep); cursor: default; }
+.s-tile[data-locked] .s-mini { opacity: 0.55; }
+/* A small gold diamond sewn on a bar that holds something of the player's own. */
+.s-patch {
+  display: block; inline-size: 0.8rem; block-size: 0.8rem; border-radius: 0.15rem; flex: none;
+  background: var(--s-yours); transform: rotate(45deg) scale(0.8); visibility: hidden;
+}
+.s-tile[data-changed] .s-patch { visibility: visible; }
+.s-mini .s-gold { outline: 1.5px solid var(--s-yours); outline-offset: 1.5px; border-radius: 2px; }
+/* A bar in miniature: 16 steps across, a row per part (the tune, the colour, the floor, hi-hat, snare, kick). */
+.s-mini {
+  display: grid; grid-template-columns: repeat(16, minmax(0, 1fr));
+  /* The three lines are thin; the three drum lanes get the room, so a hat, a snare and a kick on one step stay apart. */
+  grid-template-rows: repeat(3, minmax(0, 0.7fr)) repeat(3, minmax(0, 1.3fr));
+  align-items: center; min-block-size: 0;
+}
+.s-mini > i { display: block; }
+.s-mini-basted { block-size: 0; border-block-start: 1.2px dashed color-mix(in oklch, var(--s-thread) 30%, transparent); }
+.s-mini-line { block-size: 3px; margin-inline: 1px; border-radius: 99px; background: var(--c); }
+.s-mini-chord { block-size: 4px; border-radius: 99px; }
+.s-mini-hit { justify-self: center; background: var(--c); }
+.s-mini-kick { inline-size: min(100%, 0.55rem); block-size: 0.25rem; border-radius: 99px; }
+.s-mini-snare {
+  inline-size: 0.42rem; block-size: 0.42rem;
+  background:
+    linear-gradient(45deg, transparent 38%, var(--c) 38% 62%, transparent 62%),
+    linear-gradient(-45deg, transparent 38%, var(--c) 38% 62%, transparent 62%);
+}
+.s-mini-hat { inline-size: 0.13rem; block-size: 0.45rem; border-radius: 1px; transform: rotate(32deg); }
+.s-mini-sections { grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(4, minmax(0, 1fr)); }
+.s-mini-band { block-size: 0.3rem; border-radius: 99px; background: var(--c); }
+.s-tile-needle {
+  position: absolute; inset-block: 0.35rem; inline-size: 2px; border-radius: 1px;
+  inset-inline-start: calc(0.65rem + var(--at, 0) * (100% - 1.3rem));
+  background: var(--s-thread); opacity: 0;
+}
+.s-tile[data-now] .s-tile-needle { opacity: 1; }
+
+/* the tools over the instrument: where you are, and what can be done to a whole bar */
+.s-tools { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; column-gap: var(--s-space-m); block-size: 2.75rem; }
+.s-copy {
+  display: flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.3rem 0.25rem 0.85rem; border-radius: 99px;
+  box-shadow: inset 0 0 0 1px var(--s-line);
+}
+.s-copy[data-hidden] { visibility: hidden; }
+.s-copy-label { display: inline-flex; align-items: center; gap: 0.4rem; margin-inline-end: 0.3rem; font-size: var(--s-step--1); font-weight: 700; color: var(--s-mute); }
+.s-chip {
+  display: grid; place-items: center; min-inline-size: 2.15rem; block-size: 2.15rem; padding-inline: 0.5rem;
+  border-radius: 99px; background: var(--s-wash); font-weight: 750; font-variant-numeric: tabular-nums;
+}
+.s-chip.s-wide { padding-inline: 0.85rem; }
+.s-edit { display: flex; gap: 0.35rem; justify-self: end; }
+.s-edit .s-sbtn { block-size: 2.4rem; padding-inline: 0.9rem; font-size: var(--s-step--1); }
+
+/* ── the cloth: the one bar on screen, big ── */
+.s-cloth {
+  position: relative; min-block-size: 0; isolation: isolate;
+  padding: 1.15rem 1.4rem 1.2rem;
+  border-radius: 1.4rem; color: var(--s-thread);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in oklch, var(--s-thread) 3%, transparent) 7px 8px),
+    var(--s-cloth);
+  box-shadow: var(--s-shadow);
+}
+.s-cloth :focus-visible { outline: 2px solid var(--s-thread); outline-offset: 2px; }
+.s-beatno {
+  display: grid; place-items: center; font-size: var(--s-step-0); font-weight: 800;
+  color: color-mix(in oklch, var(--s-thread) 72%, transparent); font-variant-numeric: tabular-nums;
+}
+.s-beatno[data-sub] { font-size: var(--s-step--1); font-weight: 650; color: color-mix(in oklch, var(--s-thread) 42%, transparent); }
+.s-beatno[data-now] { color: var(--s-thread); }
+
+/* a lane's or a height's name: press it to hear it */
+.s-lane-name, .s-part-name, .s-ladder-name {
+  display: flex; align-items: center; gap: 0.45rem; text-align: start;
+  font-size: var(--s-step-1); font-weight: 750; letter-spacing: -0.01em; color: var(--s-thread);
+}
+.s-lane-name .s-ico { opacity: 0; color: color-mix(in oklch, var(--s-thread) 60%, transparent); }
+.s-lane-name[data-hit] { color: var(--c); }
+
+/* drums: three lanes of steps */
+.s-drumbar { block-size: 100%; display: grid; grid-template-rows: auto repeat(3, minmax(0, 1fr)); row-gap: 0.55rem; }
+.s-drumbar .s-lane { display: grid; grid-template-columns: var(--s-label) minmax(0, 1fr); column-gap: var(--s-space-s); align-items: center; min-block-size: 0; }
+.s-drumbar .s-ruler { block-size: 1.6rem; }
+.s-drumbar .s-beats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: clamp(0.6rem, 1.2vw, 1.1rem); block-size: 100%; align-items: center; }
+.s-drumbar .s-beat { display: grid; grid-template-columns: repeat(var(--per), minmax(0, 1fr)); column-gap: clamp(0.25rem, 0.5vw, 0.45rem); block-size: 100%; align-items: center; }
+.s-drumbar[data-res='16'] .s-beat { column-gap: 0.25rem; }
+.s-drumbar .s-lane[data-off] .s-lane-name { opacity: 0.32; pointer-events: none; }
+.s-basted { block-size: 0; border-block-start: 2px dashed color-mix(in oklch, var(--s-thread) 18%, transparent); margin-inline-end: 0.5rem; }
+.s-pad {
+  position: relative; display: grid; place-items: center;
+  block-size: min(100%, 5.75rem); border-radius: 0.85rem;
+  background: color-mix(in oklch, var(--s-thread) 7%, transparent);
+  color: var(--c); touch-action: manipulation;
+}
+.s-drumbar .s-beat > .s-pad:first-child { background: color-mix(in oklch, var(--s-thread) 12%, transparent); }
+/* The colour of a pad changes on the frame it is pressed: no transition. */
+.s-drumbar .s-beat > .s-pad[data-now] { background: color-mix(in oklch, var(--s-thread) 22%, transparent); }
+.s-drumbar .s-beat > .s-pad[data-on] { background: color-mix(in oklch, var(--c) 24%, transparent); }
+.s-drumbar .s-beat > .s-pad[data-on][data-now] { background: color-mix(in oklch, var(--c) 40%, transparent); }
+.s-pad .s-stitch { inline-size: min(68%, 3.4rem); block-size: auto; }
+.s-pad[data-hole] .s-stitch { color: color-mix(in oklch, var(--s-thread) 78%, transparent); }
+.s-pad[data-hit] .s-stitch { filter: brightness(1.35); }
+/* Make it yours: a hit of the player's own is ringed in gold; a hit of the song's they took out leaves a faint ring. */
+.s-drumbar .s-beat > .s-pad[data-gold] { box-shadow: inset 0 0 0 2.5px var(--s-yours); }
+.s-drumbar .s-beat > .s-pad[data-gone] { box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--s-yours) 50%, transparent); }
+.s-pad[data-gone]::after {
+  content: ''; position: absolute; inset: 32%; border-radius: 50%;
+  border: 2px dashed color-mix(in oklch, var(--s-yours) 70%, transparent);
+}
+
+/* the bass and the tune: six heights, notes that start on a beat and last */
+.s-notebar { block-size: 100%; display: grid; grid-template-rows: auto auto minmax(0, 1fr); row-gap: 0.45rem; }
+.s-notebar .s-row, .s-notebar .s-ladder { display: grid; grid-template-columns: var(--s-label) minmax(0, 1fr); column-gap: var(--s-space-s); }
+.s-notebar .s-ruler { block-size: 1.6rem; align-items: center; }
+.s-notebar .s-beatno { display: flex; align-items: center; justify-content: flex-start; gap: 0.6rem; padding-inline-start: 0.7rem; }
+.s-folded { display: flex; gap: 0.3rem; }
+.s-folded i { inline-size: 0.25rem; block-size: 0.25rem; border-radius: 50%; background: color-mix(in oklch, var(--s-thread) 28%, transparent); }
+.s-notebar .s-cols { display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); column-gap: 0.5rem; }
+.s-notebar .s-context { block-size: 1.6rem; align-items: center; }
+.s-context-name { font-size: var(--s-step--1); font-weight: 700; color: color-mix(in oklch, var(--s-thread) 55%, transparent); }
+.s-ctx { block-size: 100%; }
+.s-ctx.s-kicks { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); align-items: center; color: var(--c); }
+.s-ctx.s-kicks span { display: grid; place-items: center; }
+.s-ctx.s-kicks .s-stitch { inline-size: min(100%, 1.6rem); }
+.s-ctx.s-mood { align-self: center; block-size: 0.5rem; border-radius: 99px; background: var(--mood); }
+.s-notebar .s-ladder { min-block-size: 0; }
+.s-heights { display: grid; grid-template-rows: repeat(6, minmax(0, 1fr)); row-gap: 0.3rem; }
+.s-height { display: flex; align-items: center; gap: 0.5rem; color: var(--s-thread); }
+.s-height i {
+  inline-size: calc(0.55rem + var(--depth) * 0.9rem); aspect-ratio: 1; border-radius: 50%;
+  background: color-mix(in oklch, var(--c) 85%, transparent); flex: none; margin-inline-start: calc((1.45rem - var(--depth) * 0.9rem) / 2);
+}
+.s-height[data-home] i { box-shadow: 0 0 0 2.5px var(--s-cloth), 0 0 0 4.5px var(--s-thread); }
+.s-height .s-ico { opacity: 0; color: color-mix(in oklch, var(--s-thread) 60%, transparent); }
+.s-cells {
+  position: relative; display: grid; min-block-size: 0;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(0, 1fr));
+  column-gap: 0.5rem; row-gap: 0.3rem;
+  touch-action: none; cursor: pointer;
+}
+.s-cell { border-radius: 0.6rem; background: color-mix(in oklch, var(--s-thread) 6%, transparent); }
+.s-cell[data-beat] { background: color-mix(in oklch, var(--s-thread) 9%, transparent); }
+.s-cell[data-now] { background: color-mix(in oklch, var(--s-thread) 19%, transparent); }
+.s-note {
+  pointer-events: none; z-index: 1; align-self: center; position: relative;
+  display: flex; align-items: center; block-size: 52%; margin-inline: 0.2rem;
+  border-radius: 99px; background: var(--c);
+}
+.s-knot {
+  inline-size: 0.95rem; aspect-ratio: 1; border-radius: 50%; margin-inline-start: 0.3rem; flex: none;
+  background: var(--s-thread); box-shadow: 0 0 0 2.5px color-mix(in oklch, var(--c), black 30%);
+}
+.s-note[data-hole] { background: transparent; outline: 2px dashed color-mix(in oklch, var(--s-thread) 80%, transparent); outline-offset: -2px; z-index: 0; }
+.s-note[data-hole] .s-knot { background: transparent; box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--s-thread) 80%, transparent); }
+.s-note[data-hit] { filter: brightness(1.3); }
+.s-note[data-gold] { box-shadow: 0 0 0 3px var(--s-yours); }
+.s-note[data-gone] {
+  background: transparent; z-index: 0;
+  outline: 2px dashed color-mix(in oklch, var(--s-yours) 75%, transparent); outline-offset: -2px;
+}
+.s-note[data-gone] .s-knot { visibility: hidden; }
+
+/* chords: one block fills the bar */
+.s-chordbar {
+  block-size: 100%; display: grid; grid-template-columns: var(--s-label) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) 1.4rem auto; column-gap: var(--s-space-s); row-gap: 0.5rem;
+}
+.s-chordbar > * { grid-column: 2; }
+.s-chordbar > .s-chord-name { grid-column: 1; grid-row: 1; align-self: center; }
+.s-chordbar > .s-under-name { grid-column: 1; grid-row: 3; align-self: center; }
+.s-chordbar .s-ruler { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); block-size: 1.6rem; }
+.s-chordbar .s-ruler .s-beatno { justify-self: start; padding-inline-start: 0.6rem; }
+.s-block {
+  border-radius: 1.2rem; min-block-size: 4rem;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 13px, color-mix(in oklch, white 14%, transparent) 13px 15px),
+    var(--mood);
+  box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--mood), black 20%);
+}
+.s-block:not([data-on]) { background: transparent; box-shadow: none; border: 2px dashed color-mix(in oklch, var(--s-thread) 20%, transparent); }
+.s-block[data-hole] { border-color: var(--mood); background: color-mix(in oklch, var(--mood) 12%, transparent); }
+.s-block[data-hit] { filter: brightness(1.15); }
+.s-block[data-gold] {
+  box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--mood), black 20%), 0 0 0 4px var(--s-cloth), 0 0 0 7px var(--s-yours);
+}
+.s-bassline[data-gold] { opacity: 1; box-shadow: 0 0 0 2px var(--s-yours); }
+.s-under { position: relative; display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); align-items: end; }
+.s-bassline { block-size: 4px; border-radius: 99px; background: var(--s-bass); margin-block-end: calc(var(--h) * 1rem); margin-inline: 0.15rem; opacity: 0.75; }
+.s-palette { display: flex; gap: var(--s-space-s); justify-content: center; padding-block: 0.4rem 0.1rem; }
+.s-swatch {
+  inline-size: 3rem; block-size: 3rem; border-radius: 50%; background: var(--mood);
+  box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--mood), black 18%);
+}
+.s-swatch[aria-checked='true'] { box-shadow: 0 0 0 3px var(--s-cloth), 0 0 0 5.5px var(--s-thread); }
+/* Make it yours: a small thread dot under the song's own colour for this bar, the way back. */
+.s-swatch { position: relative; }
+.s-swatch[data-song]::after {
+  content: ''; position: absolute; inset-block-start: calc(100% + 0.4rem); inset-inline-start: 50%; translate: -50% 0;
+  inline-size: 0.35rem; block-size: 0.35rem; border-radius: 50%; background: color-mix(in oklch, var(--s-thread) 65%, transparent);
+}
+
+/* the Story world: one section, which parts play */
+.s-sectionbar { block-size: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr); row-gap: 0.6rem; }
+.s-sec-title { display: flex; align-items: baseline; gap: 0.6rem; padding-inline-start: calc(var(--s-label) + var(--s-space-s)); }
+.s-sec-title b { font-size: var(--s-step-2); font-weight: 750; }
+.s-sec-title span { color: color-mix(in oklch, var(--s-thread) 60%, transparent); font-weight: 650; }
+.s-parts { position: relative; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); row-gap: 0.5rem; }
+.s-part { display: grid; grid-template-columns: var(--s-label) minmax(0, 1fr); column-gap: var(--s-space-s); align-items: center; }
+.s-band {
+  position: relative; display: flex; align-items: center; block-size: min(100%, 3.75rem); padding-inline: 1.2rem;
+  border-radius: 0.9rem; font-weight: 750; color: var(--s-cloth);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 13px, color-mix(in oklch, white 16%, transparent) 13px 15px),
+    var(--c);
+}
+.s-band:not([data-on]) { background: transparent; color: color-mix(in oklch, var(--s-thread) 55%, transparent); }
+.s-band:not([data-on])::before {
+  content: ''; position: absolute; inset-inline: 0; inset-block-start: 50%;
+  border-block-start: 2px dashed color-mix(in oklch, var(--s-thread) 22%, transparent);
+}
+.s-band-word { position: relative; padding-inline: 0.4rem; background: inherit; border-radius: 0.4rem; }
+.s-band:not([data-on]) .s-band-word { background: var(--s-cloth); }
+.s-band[data-hole] { outline: 2px dashed var(--s-thread); outline-offset: 3px; }
+.s-sec-needle {
+  position: absolute; inset-block: -0.25rem; inline-size: 2px; border-radius: 1px; pointer-events: none;
+  inset-inline-start: calc(var(--s-label) + var(--s-space-s) + var(--at, 0) * (100% - var(--s-label) - var(--s-space-s)));
+  background: var(--s-thread); opacity: 0;
+}
+.s-sec-needle[data-now] { opacity: 1; }
+
+/* the dock: how to listen; the loop, Play and Slow together in the middle; the way on */
+.s-dock { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: var(--s-space-m); block-size: 4.5rem; }
+.s-listens { display: flex; align-items: center; gap: 0.5rem; justify-self: start; }
+/* The song | Yours: an A and a B. The one heard is solid ink. */
+.s-ab { display: inline-flex; align-items: center; gap: 0.1rem; padding: 0.2rem; border-radius: 99px; background: var(--s-wash); }
+.s-ab .s-seg { padding-inline: 0.95rem; font-size: var(--s-step-0); }
+.s-ab .s-seg[aria-checked='true'] { background: var(--s-ink); color: var(--s-on-ink); }
+.s-transport { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: 0.6rem; }
+/* Play sits on the centre line, under the title and the middle of the cloth: the loop to its left, Slow to its right. */
+.s-transport > :first-child { justify-self: end; }
+.s-transport > :last-child { justify-self: start; }
+.s-scope { display: inline-flex; align-items: center; gap: 0.1rem; padding: 0.2rem 0.2rem 0.2rem 0.6rem; border-radius: 99px; background: var(--s-wash); color: var(--s-mute); }
+.s-seg {
+  display: inline-flex; align-items: center; gap: 0.35rem; block-size: 2.3rem; padding-inline: 0.7rem;
+  border-radius: 99px; font-size: var(--s-step--1); font-weight: 750; color: var(--s-mute); white-space: nowrap;
+}
+.s-scope .s-seg[aria-checked='true'] { background: var(--s-card); color: var(--s-ink); box-shadow: 0 1px 2px oklch(27.5% 0.064 270.6 / 0.12); }
+.s-seg.s-toggle { block-size: 2.7rem; padding-inline: 0.85rem 0.95rem; box-shadow: inset 0 0 0 1px var(--s-line); }
+.s-seg.s-toggle[aria-pressed='true'] { background: var(--s-ink); color: var(--s-on-ink); box-shadow: none; }
+.s-way-on { display: flex; justify-content: flex-end; justify-self: end; }
+
+/* something worth pressing next: a slow ring, never on its own anything else */
+@media (prefers-reduced-motion: no-preference) {
+  [data-nudge] { animation: s-nudge 2.2s var(--s-ease-out) infinite; }
+}
+[data-nudge] { box-shadow: inset 0 0 0 1.5px var(--world, var(--s-ink)); }
+@keyframes s-nudge {
+  0% { box-shadow: inset 0 0 0 1.5px var(--world, var(--s-ink)), 0 0 0 0 color-mix(in oklch, var(--world, var(--s-ink)) 45%, transparent); }
+  70%, 100% { box-shadow: inset 0 0 0 1.5px var(--world, var(--s-ink)), 0 0 0 9px transparent; }
+}
+
+/* ── the song, on a screen of its own ── */
+.s-song-screen {
+  flex: 1; display: grid; align-content: center; justify-items: center; row-gap: var(--s-space-s);
+  padding-inline: var(--s-gutter); text-align: center;
+}
+.s-song-screen .s-kicker { font-size: var(--s-step--1); font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--world); }
+.s-song-screen h1 { font-size: calc(var(--s-step-4) * 1.12); font-weight: 750; letter-spacing: -0.025em; line-height: 1.08; }
+.s-song-screen .s-line { max-inline-size: 36rem; font-size: var(--s-step-1); line-height: 1.5; color: var(--s-mute); }
+.s-player {
+  inline-size: min(48rem, 100%); margin-block: var(--s-space-l) var(--s-space-m);
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: var(--s-space-l);
+  padding: 1.1rem 1.5rem; border-radius: 1.4rem; background: var(--s-card); box-shadow: var(--s-shadow);
+}
+.s-ribbon {
+  display: grid; padding-inline: 0.9rem; border-radius: 0.9rem;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in oklch, var(--s-thread) 4%, transparent) 7px 8px),
+    var(--s-cloth);
+}
+.s-ribbon input[type='range'] { inline-size: 100%; block-size: 3.25rem; margin: 0; background: transparent; cursor: pointer; appearance: none; -webkit-appearance: none; }
+/* The part already played is sewn with a running stitch, up to the playhead. The playhead stays inside the cloth. */
+.s-ribbon input[type='range']::-webkit-slider-runnable-track {
+  block-size: 3.25rem;
+  background: repeating-linear-gradient(90deg, var(--s-thread) 0 12px, transparent 12px 19px) 0 50% / calc(var(--pf, 0) * (100% - 0.35rem)) 2.5px no-repeat;
+}
+.s-ribbon input[type='range']::-webkit-slider-thumb {
+  appearance: none; -webkit-appearance: none; inline-size: 0.35rem; block-size: 2.3rem; margin-block-start: 0.475rem;
+  border-radius: 99px; background: var(--s-thread); box-shadow: 0 0 0 2px var(--s-cloth);
+}
+.s-ribbon input[type='range']::-moz-range-track { block-size: 3.25rem; background: transparent; }
+.s-ribbon input[type='range']::-moz-range-thumb { inline-size: 0.35rem; block-size: 2.3rem; border: 0; border-radius: 99px; background: var(--s-thread); }
+.s-time { font-weight: 700; color: var(--s-mute); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.s-time span { color: var(--s-ink); }
+
+/* ── the player's song: the whole song, and every part of every bar as a map ── */
+.s-yours-screen { row-gap: var(--s-space-xs); align-content: center; padding-block: var(--s-space-s); }
+.s-yours-screen .s-player { margin-block: var(--s-space-s) var(--s-space-xs); }
+.s-yours-screen > .s-ab { margin-block-end: var(--s-space-s); }
+.s-yours-screen > .s-sbtn { margin-block-start: var(--s-space-s); }
+.s-map {
+  /* The names hang to the left; an empty column as wide on the right keeps the tiles on the page's centre line, as wide
+     as the player above them. */
+  --names: 6.5rem;
+  inline-size: min(48rem + 2 * (var(--names) + var(--s-space-s)), 100%);
+  display: grid; grid-template-columns: var(--names) repeat(4, minmax(0, 1fr)) var(--names); align-items: center;
+  column-gap: var(--s-space-s); row-gap: 0.55rem;
+}
+.s-map > .s-map-part { grid-column: 1; }
+.s-map-bar { font-size: var(--s-step--1); font-weight: 750; color: var(--s-mute); text-align: start; padding-inline-start: 0.2rem; }
+.s-map-part { font-size: var(--s-step-0); font-weight: 750; color: var(--s-ink); text-align: end; padding-inline-end: 0.2rem; }
+/* One part of one bar: a small piece of the cloth, drawn as it is on the instrument. */
+.s-mapcell {
+  position: relative; display: grid; block-size: clamp(3rem, 7.4vh, 4.6rem); padding: 0.5rem 0.7rem; overflow: clip;
+  border-radius: 0.9rem; color: var(--s-thread); box-shadow: var(--s-shadow);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in oklch, var(--s-thread) 3%, transparent) 7px 8px),
+    var(--s-cloth);
+}
+/* A tile that holds a change of the player's own is ringed in gold; the one looping is ringed in ink. */
+.s-mapcell[data-gold] { box-shadow: var(--s-shadow), inset 0 0 0 2.5px var(--s-yours); }
+.s-mapcell[aria-pressed='true'] { outline: 2.5px solid var(--s-ink); outline-offset: 3px; }
+.s-mapcell[data-rest] .s-mc { opacity: 0.25; }
+.s-mapcell[data-now] .s-tile-needle { opacity: 1; }
+.s-mapcell .s-tile-needle { inset-inline-start: calc(0.7rem + var(--at, 0) * (100% - 1.4rem)); }
+.s-mc { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); align-items: center; min-block-size: 0; }
+.s-mc > i { display: block; }
+.s-mc-drums { grid-template-rows: repeat(3, minmax(0, 1fr)); }
+.s-mc-drums .s-mini-kick { inline-size: min(100%, 0.8rem); block-size: 0.34rem; }
+.s-mc-drums .s-mini-snare { inline-size: 0.6rem; block-size: 0.6rem; }
+.s-mc-drums .s-mini-hat { inline-size: 0.17rem; block-size: 0.62rem; }
+.s-mc-line { grid-template-rows: repeat(6, minmax(0, 1fr)); }
+.s-mc-line .s-mini-line { block-size: 0.32rem; margin-inline: 0.12rem; }
+.s-mc-chord { grid-template-columns: minmax(0, 1fr); }
+.s-mc-chord > i:not(.s-mini-basted) {
+  block-size: min(100%, 1.6rem); border-radius: 0.55rem;
+  background-image: repeating-linear-gradient(90deg, transparent 0 11px, color-mix(in oklch, white 14%, transparent) 11px 13px);
+}
+.s-mc-basted { grid-template-columns: minmax(0, 1fr); }
+.s-mc .s-gold { outline: 1.5px solid var(--s-yours); outline-offset: 1.5px; border-radius: 2px; }
+
+/* ── the journey, in the title bar ── */
+.s-journey { display: flex; align-items: center; gap: 0.6rem; block-size: 44px; }
+.s-jw { display: flex; align-items: center; gap: 0.42rem; }
+.s-jw-name { font-size: 0.95rem; font-weight: 750; color: var(--s-ink); margin-inline-end: 0.3rem; }
+.s-jarrow { display: grid; place-items: center; inline-size: 1.85rem; block-size: 1.85rem; border-radius: 50%; color: var(--s-mute); }
+.s-jarrow:disabled { opacity: 0.3; }
+.s-jarrow .s-ico { inline-size: 1.05rem; block-size: 1.05rem; }
+.s-jn { position: relative; inline-size: 0.8rem; block-size: 0.8rem; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--s-line-strong); }
+.s-jn::after { content: ''; position: absolute; inset: -0.4rem; }
+.s-jn:disabled { box-shadow: inset 0 0 0 1.5px var(--s-line); }
+.s-jn[data-done] { background: var(--world); box-shadow: none; }
+.s-jn[aria-current] { box-shadow: 0 0 0 2px var(--s-page), 0 0 0 3.5px var(--s-ink); }
+/* Make it yours in the journey: a diamond, gold once kept. */
+.s-jn.s-jn-yours { border-radius: 0.15rem; transform: rotate(45deg) scale(0.86); }
+.s-jn.s-jn-yours[data-done] { background: var(--s-yours); }
+
+/* ── focus, hover and press ── */
+:is(.s-school-screen, .s-journey) :focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.s-sbtn.s-primary:focus-visible, .s-splay:focus-visible, .s-ab .s-seg[aria-checked='true']:focus-visible { outline-color: var(--s-ink); }
+
+@media (hover: hover) and (pointer: fine) {
+  .s-sbtn:not(.s-primary):not(:disabled):hover, .s-sicon:not(:disabled):hover, .s-jarrow:not(:disabled):hover, .s-chip:hover,
+  .s-seg:not([aria-checked='true']):not([aria-pressed='true']):hover { background: var(--s-wash-strong); color: var(--s-ink); }
+  .s-sbtn.s-primary:hover, .s-splay:hover { background: var(--s-ink-hover); }
+  .s-tile:not([data-locked]):hover { outline: 2px solid var(--s-line-strong); outline-offset: 3px; }
+  .s-tile[aria-current]:hover { outline-color: var(--s-ink); }
+  .s-drumbar .s-beat > .s-pad:not([data-on]):hover, .s-cell:hover { background: color-mix(in oklch, var(--s-thread) 16%, transparent); }
+  .s-lane-name:hover .s-ico, .s-height:hover .s-ico { opacity: 1; }
+  .s-swatch:hover { transform: scale(1.06); }
+  .s-band:not([data-on]):hover { background: color-mix(in oklch, var(--s-thread) 7%, transparent); }
+  .s-jn:not(:disabled):hover { transform: scale(1.25); }
+  .s-jn.s-jn-yours:not(:disabled):hover { transform: rotate(45deg) scale(1.1); }
+  .s-mapcell:hover { outline: 2px solid var(--s-line-strong); outline-offset: 3px; }
+  .s-mapcell[aria-pressed='true']:hover { outline-color: var(--s-ink); }
+}
+
+/* Press feedback. The colour of a pad is instant; only the small squeeze moves, and only if motion is welcome. */
+:is(.s-sbtn, .s-sicon, .s-jarrow, .s-chip, .s-seg, .s-splay, .s-tile, .s-swatch, .s-band, .s-block, .s-lane-name, .s-height, .s-mapcell):active:not(:disabled):not([aria-disabled]) { transform: scale(0.97); }
+.s-pad:active { transform: scale(0.96); }
+@media (prefers-reduced-motion: no-preference) {
+  :is(.s-sbtn, .s-sicon, .s-jarrow, .s-chip, .s-seg, .s-splay, .s-tile, .s-swatch, .s-band, .s-block, .s-lane-name, .s-height, .s-pad, .s-jn, .s-mapcell) {
+    transition: transform var(--s-press) var(--s-ease-out);
+  }
+}

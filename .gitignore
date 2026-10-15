@@ -1,0 +1,37 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+src-tauri/target/
+src-tauri/gen/
+
+# Test output
+test-results/
+playwright-report/
+coverage/
+
+# Videos
+*.mp4
+*.mov
+*.dmg
+
+# Docs, reviews and screenshots (kept locally, not in the repo)
+*.pdf
+*.pages
+Screenshots/
+docs/school-screens/
+design/*.html
+design/icon/icon-1024.png
+
+# Original sample copies (the app uses src/assets/audio/)
+/audio/
+
+# Python bytecode (scripts/samples/prepare.py)
+__pycache__/
+
+# OS and editor files
+.DS_Store
+.vscode/
+.idea/
+*.log
+.env*
