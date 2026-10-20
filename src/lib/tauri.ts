@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 /** True inside the desktop app; false in a plain browser (npm run dev, and the end-to-end tests). */
 export const inTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 

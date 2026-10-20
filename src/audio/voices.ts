@@ -1,4 +1,7 @@
-import { ROOT, VOICE_DB, type SampleId, type Voice } from './samples';
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
+import { ROOT, TAKES, VOICE_DB, type SampleId, type Voice } from './samples';
 import { dbToGain } from './schedule';
 import type { Sound } from './types';
 
@@ -18,14 +21,31 @@ export const HANDOFF = 0.008;
 
 export interface Voiced { src: AudioBufferSourceNode; env: GainNode; start: number; end: number }
 
-/** A playback's own bus: stopping it fades exactly its sounds and nothing else. */
-export interface Bus { node: GainNode; playing: Set<Voiced>; mono: Map<Voice, Voiced> }
+/**
+ * A playback's own bus: stopping it fades exactly its sounds and nothing else. `hits` counts each drum's hits, to pick
+ * its next take.
+ */
+export interface Bus { node: GainNode; playing: Set<Voiced>; mono: Map<Voice, Voiced>; hits: Map<SampleId, number> }
 
 export function newBus(ctx: BaseAudioContext, into: AudioNode): Bus {
   const node = ctx.createGain();
   node.connect(into);
-  return { node, playing: new Set(), mono: new Map() };
+  return { node, playing: new Set(), mono: new Map(), hits: new Map() };
 }
+
+/**
+ * The take a drum hit plays: the takes in turn, in an order that never repeats one twice running and does not cycle
+ * evenly either (1 2 4 1 3 4 2 3 …), so the ear finds no machine in it. The same in every playback, so a beat sounds
+ * the same each time it is heard, and the offline renderer measures what the engine plays.
+ */
+export function takeOf(bus: Bus, sample: SampleId): SampleId {
+  const takes = TAKES[sample];
+  if (!takes) return sample;
+  const n = bus.hits.get(sample) ?? 0;
+  bus.hits.set(sample, n + 1);
+  return takes[ORDER[n % ORDER.length] % takes.length];
+}
+const ORDER = [0, 1, 3, 0, 2, 3, 1, 2];
 
 /**
  * The master chain: master gain → 40 Hz high-pass → compressor → destination. The high-pass keeps rumble that small
@@ -54,7 +74,7 @@ export function masterChain(ctx: BaseAudioContext): { input: GainNode; output: A
  * A held note fades out after `hold`; a new note on a one-string voice crossfades the last one out.
  */
 export function trigger(ctx: BaseAudioContext, buffers: ReadonlyMap<SampleId, AudioBuffer>, s: Sound, when: number, bus: Bus) {
-  const buffer = buffers.get(s.sample);
+  const buffer = buffers.get(takeOf(bus, s.sample)) ?? buffers.get(s.sample);
   if (!buffer) return;
   const t = Math.max(when, ctx.currentTime);
   const root = ROOT[s.sample];

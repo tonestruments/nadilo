@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 /**
  * Sync calibration, the way rhythm games do it: the player taps along to what they hear, and the gap
  * between their taps and when the beats were due tells us how late the sound reaches them.

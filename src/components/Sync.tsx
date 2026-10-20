@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { engine } from '../audio/engine';

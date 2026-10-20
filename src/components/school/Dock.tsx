@@ -1,5 +1,8 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { send, useApp } from '../../machine/actor';
-import type { Scope } from '../../school/levels';
+import { WORLDS, type Scope } from '../../school/levels';
 import { buildFor, endsWorld, levelsFor, type Listen } from '../../school/rules';
 import { PauseIcon, PlayIcon, ArrowIcon } from '../Icons';
 import { CloseIcon, HintIcon, LoopIcon, SlowIcon } from './Glyphs';
@@ -26,7 +29,8 @@ export function Dock() {
   const next = useApp((s) => {
     const i = s.context.school.level;
     if (s.context.room.twist) return 'Hear your song';
-    if (endsWorld(s.context.school, i)) return i === levelsFor(s.context.school).length - 1 ? 'Hear your song' : 'Hear it in the song';
+    // The world ends here, so the way on says so: its end is the song next to what the player has made so far.
+    if (endsWorld(s.context.school, i)) return i === levelsFor(s.context.school).length - 1 ? 'Hear your song' : `Finish ${WORLDS[level.world].name}`;
     return 'Next level';
   });
   // Make it yours is done when the player keeps what they changed: until then, once there is a change, Keep it.

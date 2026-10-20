@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 export type Lane = 'hat' | 'snare' | 'kick';
 
 /** Top to bottom on screen. */

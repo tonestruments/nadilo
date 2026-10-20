@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import * as Tone from 'tone';
 import type { Lane } from '../game/levels';
 import type { Pattern } from '../game/logic';
@@ -148,7 +151,8 @@ export class ToneEngine implements AudioEngine {
 
   async playProgram(mode: Mode, program: Program, from = 0) {
     if (!this.started || !this.loaded) await this.unlock();
-    this.stop();
+    // A playback replaced by one of its own kind (the song moved to a new place) has not ended: it carries on.
+    this.stop(this.current?.mode === mode);
     const raw = this.raw!;
     const session = newBus(raw, this.master!);
     this.session = session;
@@ -204,7 +208,8 @@ export class ToneEngine implements AudioEngine {
     transport.start(startAt, 0);
   }
 
-  stop() {
+  /** `quiet`: a new playback of the same kind takes over at once, so no end is reported. */
+  stop(quiet = false) {
     if (!this.raw) return; // nothing has played yet; touching Tone now would create a stray audio context
     const transport = Tone.getTransport();
     if (this.repeatId !== null) transport.clear(this.repeatId);
@@ -216,7 +221,7 @@ export class ToneEngine implements AudioEngine {
     this.visuals = [];
     if (this.session) this.fadeOut(this.session);
     this.session = null;
-    if (this.current) this.finish(this.current.mode, false);
+    if (this.current) this.finish(this.current.mode, false, quiet);
   }
 
   /** Stop a playback without a click (see `fadeOut`), then let its bus go. */
@@ -251,12 +256,16 @@ export class ToneEngine implements AudioEngine {
     this.raf = this.visuals.length || this.current ? requestAnimationFrame(this.frame) : 0;
   };
 
-  private finish(mode: Mode, completed: boolean) {
+  private finish(mode: Mode, completed: boolean, quiet = false) {
     if (this.current?.mode !== mode) return;
     const at = completed ? 0 : this.current.next;
     this.current = null;
     if (completed) Tone.getTransport().stop(Tone.immediate());
-    this.emit({ type: 'end', mode, completed, at });
+    if (!quiet) this.emit({ type: 'end', mode, completed, at });
+  }
+
+  position() {
+    return this.current?.next ?? null;
   }
 
   level(): number {

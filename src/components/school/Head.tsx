@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useApp } from '../../machine/actor';
 import { buildFor, songOf, starsNow } from '../../school/rules';
 import { changes } from '../../school/yours';

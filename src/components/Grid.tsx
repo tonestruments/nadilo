@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useEffect, useRef } from 'react';
 import { engine } from '../audio/engine';
 import { COUNT, LANE_DESC, LANE_NAME, LANE_WORD, type Lane } from '../game/levels';

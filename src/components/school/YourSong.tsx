@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useRef } from 'react';
 import { LANE_ORDER } from '../../game/levels';
 import { send, useApp } from '../../machine/actor';
@@ -9,7 +12,7 @@ import { ownedRows, songOf, type Listen } from '../../school/rules';
 import { BARS, sectionAt, type Build, type Part, type Song } from '../../school/song';
 import { changedIn, hitGold, noteGold, rowsChanged, rowsWith } from '../../school/yours';
 import { ArrowIcon } from '../Icons';
-import { Player } from './SongPlayer';
+import { Player, Whose } from './SongPlayer';
 import { press, useNeedle } from './use';
 
 /** Top to bottom, as everywhere else in School: the tune, the colour, the floor, the drums. */
@@ -54,8 +57,10 @@ export function YourSong() {
         if (on) c.style.setProperty('--at', String(n.step / 16));
         c.toggleAttribute('data-rest', n.mode === 'song' && !arr[c.dataset.part as Part][section]);
       });
+      // A part resting in this section fades as a whole row, its name with it.
+      root.querySelectorAll<HTMLElement>('.s-map-part').forEach((c) => c.toggleAttribute('data-rest', n.mode === 'song' && !arr[c.dataset.part as Part][section]));
     },
-    () => ref.current?.querySelectorAll('.s-mapcell').forEach((c) => { c.removeAttribute('data-now'); c.removeAttribute('data-rest'); }),
+    () => ref.current?.querySelectorAll('.s-mapcell, .s-map-part').forEach((c) => { c.removeAttribute('data-now'); c.removeAttribute('data-rest'); }),
   );
 
   const kicker = from === 'story' ? `${WORLDS[WORLDS.length - 1].name}, complete` : from === 'twist' ? 'Today’s twist, sewn' : song.title;
@@ -73,12 +78,8 @@ export function YourSong() {
       <h1>{any ? 'Your song' : 'The song, rebuilt'}</h1>
       <p className="s-line">{any ? 'The song, with your changes in it. Gold is yours.' : 'Nothing has changed yet: it is still the song.'}</p>
       <Player />
-      <div className="s-ab" role="radiogroup" aria-label="Listen to">
-        {WHOSE.map((l) => (
-          <button key={l.id} type="button" role="radio" aria-checked={room.listen === l.id} className="s-seg" data-testid={`listen-${l.id}`}
-            {...press(() => send({ type: 'SCHOOL.LISTEN', listen: l.id }))}>{l.label}</button>
-        ))}
-      </div>
+      {/* With nothing changed, Yours is the song: two names for one thing would only claim a difference. */}
+      {any && <Whose options={WHOSE} />}
       <div className="s-map" ref={ref} data-testid="song-map">
         <span aria-hidden />
         {Array.from({ length: BARS }, (_, b) => <span key={b} className="s-map-bar" aria-hidden>Bar {b + 1}</span>)}
@@ -100,7 +101,7 @@ function PartRow({ part, name, song, own, drawn, looping }: {
 }) {
   return (
     <>
-      <span className={`s-map-part c-${part}`}>{name}</span>
+      <span className={`s-map-part c-${part}`} data-part={part}>{name}</span>
       {Array.from({ length: BARS }, (_, bar) => {
         const gold = changedIn(song, own, part, bar);
         const on = looping?.part === part && looping.bar === bar;

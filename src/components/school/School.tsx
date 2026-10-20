@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useEffect } from 'react';
 import { send, snapshot, useApp } from '../../machine/actor';
 import { WORLDS } from '../../school/levels';
@@ -57,13 +60,16 @@ function Meet() {
   );
 }
 
+const END_WHOSE = [{ id: 'song', label: 'The song' }, { id: 'mine', label: 'Yours so far' }] as const;
+
 function WorldEnd() {
   const level = useLevel();
   const last = useApp((s) => s.context.school.level >= levelsFor(s.context.school).length - 1);
   const world = WORLDS[level.world];
   const next = WORLDS[level.world + 1];
+  // The song as first heard, or only what the player has made so far: the difference is what is left to build.
   return (
-    <SongPlayer kicker={`${world.name}, complete`} title={world.end}
+    <SongPlayer kicker={`${world.name}, complete`} title={world.end} whose={END_WHOSE}
       action={next && !last ? `On to ${next.name}` : 'Back home'} then={{ type: 'NEXT' }} color={world.color} testId="world-end" />
   );
 }

@@ -1,7 +1,8 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useEffect, useRef, type ReactNode } from 'react';
 import { engine } from '../audio/engine';
-import { playingLabel } from '../game/copy';
-import { useApp } from '../machine/actor';
 import { PauseIcon, PlayIcon } from './Icons';
 
 export function Switch({ on, onChange, children, testId }: { on: boolean; onChange: (v: boolean) => void; children?: ReactNode; testId?: string }) {
@@ -23,25 +24,6 @@ export function PlayButton({ playing, onClick, label, primary = true, large = fa
     <button type="button" className={`play ${primary ? '' : 'secondary'} ${large ? 'large' : ''}`} onClick={onClick} aria-label={label} data-testid={testId}>
       {playing ? <PauseIcon size={size} /> : <PlayIcon size={size} />}
     </button>
-  );
-}
-
-/**
- * Whether sound is playing, and what: small, in the title bar, next to Sync. A dot (green while playing), a few words,
- * and while something plays, a live meter of the real signal leaving the app.
- */
-export function SoundStatus() {
-  const playing = useApp((s) => s.context.playing);
-  const loop = useApp((s) => s.context.loop);
-  const loops = useApp((s) => s.context.loops);
-  return (
-    <div className={`status ${playing ? 'on' : ''}`} data-testid="status">
-      <span className="led" />
-      <b>{playing ? playingLabel(playing) : engine.started ? 'Sound ready' : 'Sound starts on play'}</b>
-      {/* A count only where there is more than one pass to count. */}
-      {playing && loops > 1 && <span>loop {loop} of {loops}</span>}
-      <Meter />
-    </div>
   );
 }
 

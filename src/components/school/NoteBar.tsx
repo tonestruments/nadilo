@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useMemo, useRef } from 'react';
 import { send, useApp } from '../../machine/actor';
 import { HOME_ROW, MOODS, ROWS, type Ladder } from '../../school/music';

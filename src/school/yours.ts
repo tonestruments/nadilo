@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { LANE_ORDER, type Lane } from '../game/levels';
 import type { Level } from './levels';
 import { isLane, type Row } from './match';

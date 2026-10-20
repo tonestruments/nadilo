@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { LANE_ORDER, STEPS, type Lane } from '../game/levels';
 import type { Pattern } from '../game/logic';
 import type { Program, Sound } from './types';

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { inTauri, invoke } from './tauri';
 
 /** Trackpad haptics on macOS (Force Touch). A no-op in the browser and on other platforms. */

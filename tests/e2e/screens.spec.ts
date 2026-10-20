@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { test } from '@playwright/test';
 import { freshStart, openLevel, place } from './helpers';
 

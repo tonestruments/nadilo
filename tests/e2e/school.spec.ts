@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { expect, test, type Page } from '@playwright/test';
 import { freshSchool, levelsOf } from '../../src/school/rules';
 import { FIRST_SONG as SONG, emptyBuild, type Build } from '../../src/school/song';
@@ -240,10 +243,18 @@ test('a world ends with the whole song, then goes on to the next world', async (
   await tap(page, pad(page, 'kick', 2));
   await expect(page.getByTestId('pad-kick-2')).toHaveAttribute('data-gold', '');
   await page.getByTestId('keep').click();
+  // The way on says that the world ends here.
+  await expect(page.getByTestId('next')).toHaveText('Finish Pulse');
   await page.getByTestId('next').click();
-  await expect(page.getByTestId('world-end')).toContainText('Your drums, in the song');
+  await expect(page.getByTestId('world-end')).toContainText('Your drums');
+  // What the player has made so far, or the song as first heard: one press apart.
+  await expect(page.getByTestId('listen-mine')).toHaveText('Yours so far');
+  await expect(page.getByTestId('listen-mine')).toHaveAttribute('aria-checked', 'true');
   await page.getByTestId('song-play').click();
   await expect(page.getByTestId('song-play')).toHaveAttribute('aria-label', 'Pause');
+  await page.getByTestId('listen-song').click();
+  await expect(page.getByTestId('listen-song')).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByTestId('song-play')).toHaveAttribute('aria-label', 'Pause'); // switched, not stopped
   await page.getByTestId('song-next').click();
   await expect(page.getByTestId('level-title')).toHaveText('Under the boom');
 });
@@ -264,4 +275,42 @@ test('the save keeps 0.3.x School as it was, so that build can still be opened',
   expect(saved.v).toBe(5);
   expect(saved.school).toEqual(legacy);
   expect(saved.rebuild.build.drums[0].kick[0]).toBe(true);
+});
+
+test('the song player: a press on the track moves the song at once; a section loops on its own', async ({ page }) => {
+  await page.goto('/?fake-audio');
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('nadilo', JSON.stringify({ v: 5, onboarded: true, cues: true, solved: [], levelIdx: 0, syncOffsetMs: 0, records: {} })); });
+  await page.reload();
+  await page.getByTestId('school-continue').click();
+  await expect(page.getByTestId('meet')).toBeVisible();
+  const ctx = () => page.evaluate(() => (window as any).__nadilo.actor.getSnapshot().context);
+  const track = page.getByTestId('song-track');
+  const box = (await track.boundingBox())!;
+  const total = 28 * 16;
+  // Halfway along, with nothing playing: the place moves, and the time says where.
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  expect(Math.abs((await ctx()).songAt - total / 2)).toBeLessThanOrEqual(4);
+  await expect(track).toHaveAttribute('aria-valuetext', '0:38');
+  // Playing, a press moves it at once and it plays on from there: no jump back to where it was.
+  await page.getByTestId('song-play').click();
+  await page.mouse.click(box.x + box.width * 0.9, box.y + box.height / 2);
+  await page.waitForTimeout(400);
+  const c = await ctx();
+  expect(c.playing).toBe('song');
+  expect(c.songAt).toBeGreaterThan(total * 0.85);
+  const pf = Number(await track.evaluate((el) => getComputedStyle(el).getPropertyValue('--pf')));
+  expect(pf).toBeGreaterThan(0.88);
+  // The chorus, looped: the track stays inside it.
+  await page.getByTestId('song-part-chorus').click();
+  await expect(page.getByTestId('song-part-chorus')).toHaveAttribute('aria-pressed', 'true');
+  await page.waitForTimeout(600);
+  const inChorus = Number(await track.evaluate((el) => getComputedStyle(el).getPropertyValue('--pf')));
+  expect(inChorus).toBeGreaterThanOrEqual(16 / 28);
+  expect(inChorus).toBeLessThan(24 / 28);
+  await expect(page.getByTestId('song-part-chorus')).toHaveAttribute('data-now', '');
+  // Pressed again: the whole song plays on.
+  await page.getByTestId('song-part-chorus').click();
+  await expect(page.getByTestId('song-part-chorus')).toHaveAttribute('aria-pressed', 'false');
+  expect((await ctx()).playing).toBe('song');
+  await page.getByTestId('song-play').click();
 });

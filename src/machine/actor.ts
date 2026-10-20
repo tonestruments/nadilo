@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { createActor, type Actor } from 'xstate';
 import { useSelector } from '@xstate/react';
 import { engine } from '../audio/engine';

@@ -1,8 +1,13 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { describe, expect, it } from 'vitest';
 import { MIN_FUNDAMENTAL_HZ, ROOT } from '../../src/audio/samples';
 import { LANE_ORDER } from '../../src/game/levels';
 import { allBars, barMarks, compare, exact, marks, starsFor, visible, type Row } from '../../src/school/match';
-import { loopBar, loopProgram, songProgram, sourcesFor, sourcesOwned, tempo, VOICED } from '../../src/school/mix';
+import { loopBar, loopProgram, partProgram, partSpan, songProgram, sourcesFor, sourcesOwned, sourcesSong, tempo, VOICED } from '../../src/school/mix';
+import { TAKES } from '../../src/audio/samples';
+import { takeOf, type Bus } from '../../src/audio/voices';
 import { LADDER, MOOD_ORDER, voicing } from '../../src/school/music';
 import {
   activeLevel, allDone, applyEdit, barSewn, freshRoom, freshSchool, holesIn, levelsOf, madeYours, nextOpen, ownedRows, sanitizeSchool,
@@ -249,6 +254,32 @@ describe('what plays', () => {
   it('a level that is not done plays the player\'s rows they own, and the rest from the song', () => {
     const owned = ownedRows({ song: 'first', done: ['heartbeat', 'copy', 'clapback', 'zoomin', 'turn'] });
     expect([...owned].sort()).toEqual(['hat', 'kick', 'snare']);
+  });
+});
+
+describe('a section on its own', () => {
+  it('plays exactly what the whole song plays there, and loops it', () => {
+    const view = () => ({ song: SONG, mine: SONG.parts, src: sourcesSong(), ownArr: false });
+    const whole = songProgram(view);
+    for (const part of SONG.sections.keys()) {
+      const { start, steps } = partSpan(SONG, part);
+      const p = partProgram(view, part);
+      expect(p.steps).toBe(steps);
+      expect(p.loops).toBe(0);
+      for (let pos = 0; pos < steps; pos++) expect(p.at(pos, 0.17)).toEqual(whole.at(start + pos, 0.17));
+    }
+  });
+});
+
+describe('the drums\' takes', () => {
+  it('are played in turn, never the same one twice running, and every take is heard', () => {
+    for (const sample of ['kick', 'snare', 'hat'] as const) {
+      const bus = { hits: new Map() } as unknown as Bus;
+      const played = Array.from({ length: 64 }, () => takeOf(bus, sample));
+      expect(new Set(played)).toEqual(new Set(TAKES[sample]));
+      for (let i = 1; i < played.length; i++) expect(played[i]).not.toBe(played[i - 1]);
+    }
+    expect(takeOf({ hits: new Map() } as unknown as Bus, 'bass')).toBe('bass');
   });
 });
 

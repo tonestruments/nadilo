@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { LANE_ORDER, type Lane } from '../game/levels';
 import type { Ladder } from './music';
 import { BARS, PARTS, STEPS, type Build, type Part, type Song } from './song';

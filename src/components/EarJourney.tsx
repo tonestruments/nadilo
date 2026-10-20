@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { LEVELS } from '../game/levels';
 import { send, useApp } from '../machine/actor';
 import { ChevronIcon } from './school/Glyphs';

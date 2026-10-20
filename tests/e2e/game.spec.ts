@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { expect, test } from '@playwright/test';
 import { cell, openLevel, place } from './helpers';
 
@@ -124,10 +127,11 @@ test('the reward card does not start any beat on its own', async ({ page }) => {
     setTimeout(() => { off(); resolve(seen); }, 2000);
   }));
   expect(started).toEqual([]);
-  await expect(page.getByTestId('status')).not.toContainText('loop');
+  const playing = () => page.evaluate(() => (window as any).__nadilo.actor.getSnapshot().context.playing);
+  expect(await playing()).toBeNull();
   // The player can still choose to hear it from "Listen for it".
   await page.getByTestId('lf-play').click();
-  await expect(page.getByTestId('status')).toContainText('The beat');
+  await expect.poll(playing).toBe('reveal');
 });
 
 test('a lane given in full says so and takes no presses; a lane partly given says that', async ({ page }) => {

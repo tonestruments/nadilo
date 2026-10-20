@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { AnimatePresence } from 'motion/react';
 import { send, useApp } from './machine/actor';
 import { screenOf, type Screen } from './machine/view';
@@ -7,7 +10,7 @@ import { Home } from './components/Home';
 import { HomeIcon } from './components/Icons';
 import { SoundCheck, Welcome } from './components/Onboarding';
 import { Sync } from './components/Sync';
-import { SoundStatus, Switch } from './components/controls';
+import { Switch } from './components/controls';
 import { ChevronIcon } from './components/school/Glyphs';
 import { Journey } from './components/school/Journey';
 import { School } from './components/school/School';
@@ -19,7 +22,6 @@ function TitleBar() {
   const onboarding = useApp((s) => s.hasTag('onboarding'));
   // A reward card is modal: while it is up, it offers the only ways on.
   const tools = useApp((s) => s.hasTag('game') && !s.hasTag('sync') && !s.hasTag('reward'));
-  const status = useApp((s) => s.hasTag('game') && !s.hasTag('sync'));
   const cues = useApp((s) => s.context.cues);
   // The song's own screens are not steps of a world: the journey is not shown over them.
   const meet = useApp((s) => s.hasTag('schoolMeet') || s.hasTag('schoolSong'));
@@ -49,12 +51,11 @@ function TitleBar() {
           </button>
         </div>
       )}
-      {status && (
-        // Whether sound plays is always shown, even under a reward card; the buttons beside it are not.
+      {tools && (
+        // The play buttons say what plays; the title bar needs no second word for it.
         <div className="right">
-          <SoundStatus />
-          {tools && <button type="button" className="bar-btn" onClick={() => send({ type: 'SYNC.OPEN' })} data-testid="open-sync" title="Line up the playhead with your headphones">Sync</button>}
-          {tools && screen === 'game' && <Switch on={cues} onChange={(on) => send({ type: 'SET_CUES', on })} testId="cues">Coach tips</Switch>}
+          <button type="button" className="bar-btn" onClick={() => send({ type: 'SYNC.OPEN' })} data-testid="open-sync" title="Line up the playhead with your headphones">Sync</button>
+          {screen === 'game' && <Switch on={cues} onChange={(on) => send({ type: 'SET_CUES', on })} testId="cues">Coach tips</Switch>}
         </div>
       )}
     </div>

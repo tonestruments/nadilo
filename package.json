@@ -1,7 +1,9 @@
 {
   "name": "nadilo",
   "private": true,
-  "version": "0.4.4",
+  "version": "0.4.5",
+  "license": "GPL-3.0-only",
+  "author": "Tonestruments AB",
   "type": "module",
   "scripts": {
     "dev": "vite",

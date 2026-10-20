@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { renderProgram } from '../../src/audio/renderProgram';
 import { SAMPLE_URLS } from '../../src/audio/sampleUrls';
 import type { SampleId } from '../../src/audio/samples';

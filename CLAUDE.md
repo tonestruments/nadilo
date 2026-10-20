@@ -18,7 +18,8 @@ solved level is ever lost (`mergeProgress` in `src/machine/persist.ts`).
   load the app with `?fake-audio`, and the timing tests render offline into memory
 - `npm run e2e:audio`: the tests tagged `@audio`, which use the real engine and play sound. Run these only
   when sound is OK (never in a public space), and on an idle machine
-- `python3 scripts/samples/synth.py`: makes every sound again and measures it (see Audio)
+- `NADILO_CC0_DIR=… python3 scripts/samples/cc0.py`: makes every sound again from the CC0 libraries and measures it
+  (see Audio)
 
 The product name is **Nadilo Desktop** (window title, `.app`, Welcome screen). The bundle identifier stays
 `se.tonestruments.nadilo`, so saved progress carries over.
@@ -58,8 +59,12 @@ deleted.
 - **Hear a song, then rebuild it.** `FIRST_SONG` (`song.ts`) is the song, in the same `Build` shape as the player's:
   four bars of drums, bass, chords and tune, each bar its own, plus which parts play in each of five sections. The
   first time School opens (`game.school.meet`, once, `met` in the save) it is offered whole on a screen of its own
-  (`SongPlayer`), never auto-played: a player with play, pause and a ribbon to move through it (`songAt`; a song picked
-  up part-way plays what would still be ringing).
+  (`SongPlayer`), never auto-played: a player with play and pause, a track with the time either side (a press moves
+  the song there at once; a drag moves only the handle until let go, so the music never fights the hand; ← → move
+  a bar), and the song's sections under the track, each as wide as it lasts. A section pressed loops on its own
+  (`songPart`, `partProgram`); pressed again, the whole song plays on from where it is; a move outside it lets it go
+  (`songAt`; a song picked up part-way plays what would still be ringing). A playback replaced by one of the same
+  kind reports no end (`stop(quiet)`), so a move never jumps back to the old place (0.4.3 did).
 - **Never take the song away; never play the song's part on its own.** An A and a B (`Listen` in `rules.ts`),
   switched live on the next step: **The song** (the song with the parts already rebuilt in place of its own) and
   **Yours** (the song with the player's notes for this part). **Up close** (`Room.close`) works for either: this
@@ -85,14 +90,20 @@ deleted.
   except chords before the level is done (six to try would give it away).
 - **Sounds go by plain names** (Boom, Crack, Tick, Floor, Color, Voice) until the level that names them is done
   (`names.ts`).
-- **A world ends on the whole song** (`game.school.worldEnd`), from the top, with every part rebuilt so far and every
-  change the player made their own. The last world ends on **the player's song** (`game.school.song`, `YourSong.tsx`).
+- **A world ends on the whole song** (`game.school.worldEnd`), from the top, as an A and a B (`worldEndView`): **The
+  song**, as first heard, and **Yours so far**, only what the player has made (the parts rebuilt, with every change
+  they made their own, in every section, since the arrangement is theirs only in Story). It opens on Yours so far:
+  the difference is what is left to build (the user's idea, 0.4.5). The way on from a world's last level says
+  **Finish Pulse** (and so on), so it is clear the world ends there. The last world ends on **the player's song**
+  (`game.school.song`, `YourSong.tsx`).
 - **Make it yours** (since 0.4.2; `yours` on a level, `src/school/yours.ts`): after Pulse, Color and Voice, one level
   changes the player's **own song** (`own` in the save), which starts as the song note for note and is kept apart from
   the rebuild (`build`), so a rebuild's near misses never count as theirs. *Your fill* (bar 4's drums), *Your colours*
   (any bar's chord; the bass moves with it to the new root, `followRoot`), *Your answer* (bars 2 and 4 of the tune, still
   landing home). Whatever differs from the song is **gold**: a hit or note added is ringed, one taken out leaves a faint
-  dashed ring, a bar holding a change gets a gold patch in the strip. The song | Yours compare exactly the change. Only
+  dashed ring, a bar holding a change gets a gold patch in the strip. In the strip and the song's map a change is
+  sewn in gold thread (the line or hit itself turns gold), not ringed: the rows are close, and rings ran into each
+  other (0.4.3). The song | Yours compare exactly the change. Only
   the level's bars open (the others are locked, heard in the loop); no stars (it is not measured against the song), a
   count of changes instead; the name shows once a change is there, and the level is done when the player presses
   **Keep it**. The sparring partner's **takes** (Busier, Emptier, Surprise, `takeOn`) sit where Copy sits: each is an edit
@@ -103,8 +114,9 @@ deleted.
   exactly the changes the player kept, so a rebuild's near misses are neither heard nor drawn there) and a map, one row per part and one tile per bar, each tile drawing that part of that bar, gold-ringed where it holds a
   change. Pressing a tile loops that bar (`barProgram`, mode `bar`); The song and Yours then swap only that part there
   (a colour's tile swaps the bass too), so the A and the B differ by exactly that change. Pressing it again stops it.
-  While the whole song plays, the bar it is in lights in every row and a part resting in that section fades. A part not
-  rebuilt yet is basted here too.
+  With nothing changed, The song | Yours is not shown: two names for one thing would claim a difference. While the
+  whole song plays, the bar it is in is ringed in each playing part's colour, and a part resting in that section fades
+  as a whole row, its name with it. A part not rebuilt yet is basted here too.
 - **Today's twist** (`src/school/twists.ts`, the Today card on Home): once one Make it yours level is kept, each day
   offers one small change to the player's own song, on a part whose world is rebuilt: one bar, one rule that is checked
   (keep the backbeat, end on home). Twenty twists (`TWISTS`, since 0.4.3), five per part or near it, laid out as a
@@ -117,11 +129,10 @@ deleted.
   §11).
 - **The title bar** in School: Back (`SCHOOL.BACK`: the level before, the song before the first level, Home from the
   song) and Home on the left; in the middle only the world you are in, its dots, and an arrow either side to the
-  world before and after; the sound status and Sync on the right.
+  world before and after; Sync on the right.
 - **Words are not decoration.** The world and level number live in the title bar only; no line repeats what something
   else on screen already says. Nothing claims more than is true: a copy is not yet the player's own, so the end says
-  "Your song" only when something in it differs from the song ("The song, rebuilt" otherwise), and the sound status
-  says "Playing", not whose.
+  "Your song" only when something in it differs from the song ("The song, rebuilt" otherwise).
 - **The save** is `rebuild` in `progress.json` (`SchoolSaved`: the song, the build, the level, done, stars, met, and since
   0.4.2 `own`, `today`, `sewn`), still file version 5. `level` stays an index into the rebuilding levels only (what
   0.4.1 reads: a Make it yours level saves the level before it); `levelId` names the exact level (`savedSchool`,
@@ -187,8 +198,8 @@ deleted.
   left behind; the button then says where ("Next: level 12"). The solve that completes every level, whichever it
   is, is the finale; its card leads to Home.
 - The title bar: Home on the left while in a level; the chapter in the middle, as School shows its worlds (`EarJourney`:
-  the name, its levels as dots, an arrow either side to the other chapter); the sound status, Sync and Coach tips on
-  the right. The buttons are hidden while the reward card is open, since it is modal; the sound status stays.
+  the name, its levels as dots, an arrow either side to the other chapter); Sync and Coach tips on the right. The
+  buttons are hidden while the reward card is open, since it is modal.
 
 ## Ear-training curriculum (`src/game/levels.ts`)
 
@@ -214,17 +225,29 @@ deleted.
   Master chain: gain → 40 Hz high-pass → compressor, so stacked hits never clip.
   `tests/e2e/school-audio.spec.ts` renders the real samples offline and checks that the whole song never clips and
   that Stop fades to −60 dB within 100 ms without a click.
-- **The sounds are synthesized** by `scripts/samples/synth.py` (numpy and scipy), so the repository holds no
-  recordings. It writes every WAV in `src/assets/audio/`, `src/audio/samples.json` (roles, root notes) and
-  `docs/SOUNDS.md`. Each sound is as loud above 150 Hz as the licensed sound it replaced, so the mix holds. The DMGs
-  up to 0.4.3 used licensed Cymatics sounds, which are not in this repository and not covered by the GPL.
+- **The sounds are recordings of real instruments from CC0 libraries** (public domain: Karoryfer's Virtuosity Drums,
+  Swirly Drums, Big Little Bass and Osiris Piano, and Versilian's VCSL), the set the user picked by ear on the
+  listening page as "Late tram" (2026-10-19): a kit kick, a muted snare, a closed hi-hat, a soft bass guitar, piano
+  chords over a quiet organ, a vibraphone tune. `scripts/samples/cc0.py` (numpy, scipy, ffmpeg; the libraries in
+  `NADILO_CC0_DIR`) cuts, tunes and measures them and writes every WAV in `src/assets/audio/`,
+  `src/audio/samples.json` (roles, root notes) and `docs/SOUNDS.md` (credits too). Each sound is as loud above 150 Hz
+  as the sound it replaced, so the mix holds; the piano and the organ fall 1 and 1.7 dB short at the -3 dBFS ceiling
+  and are made up for in `VOICE_DB`. The sample slot ids stay as they were (`kalimba` is now the vibraphone), so the
+  code did not change with the sounds. The DMGs up to 0.4.3 used licensed Cymatics sounds and 0.4.4 synthesized ones;
+  neither is in use.
+- **Takes.** The kick, snare and hi-hat each have four takes (`kick-2.wav` …, `TAKES` in `samples.ts`), the same hit
+  recorded again, processed with the first take's settings so a softer take stays softer. `takeOf` (in `voices.ts`)
+  plays them in turn per playback, never the same one twice running, in an order that does not cycle evenly, so a
+  beat does not sound like a machine.
 - **Laptop speakers.** Nothing sounds below 80 Hz (`floorHz`): every sound is high-passed there, the kicks settle at
-  85 to 90 Hz, and `synth.py` refuses to write a sound with more than -30 dB of its energy below 80 Hz. The bass is
-  recorded at C2 without its fundamental, so its lowest note (65 Hz) is heard from its harmonics. No note's
+  85 to 90 Hz, and `cc0.py` refuses to write a sound with more than -30 dB of its energy below 80 Hz. The bass's
+  root is C2, but the high-pass leaves little of its fundamental, so its lowest note (65 Hz) is heard from its
+  harmonics. No note's
   fundamental is below 55 Hz (`minFundamentalHz`): `tests/unit/school.test.ts` checks every note School can play
   against it, and that no sample is pitched more than 7 semitones (10 for the bass) from its root.
 - **The mix** (`VOICE_DB` in `src/audio/samples.ts`): the drums lead; the tune sits about 1 dB above them, the bass
-  and chords 2 to 3 dB under, measured as a laptop speaker hears them (high-passed at 150 Hz).
+  and chords 2 to 3 dB under, measured as a laptop speaker hears them (high-passed at 150 Hz). The piano's and the
+  organ's levels carry the 1 and 1.7 dB they could not get at the ceiling.
 - The ear game's 3 samples live in `src/assets/audio/`.
   Mix, tuned by ear: kick 0 dB, snare −2 dB, hi-hat −7 dB.
   Feel offsets: snare +4 ms, hi-hat +9 ms.
@@ -257,9 +280,10 @@ deleted.
   engine warms up before its first real note: every sample is played once, pitched, at -80 dB through the whole chain,
   for 250 ms (`warmUp` in `toneEngine.ts`). The first Play then sounds in about 100 ms.
 - Audio needs a user gesture before it can start (WebKit). The onboarding's "Get started" click calls
-  `Tone.start()`. After that, the screen must always show whether sound is playing: the sound status in the title
-  bar, beside Sync (a dot, a few words, and a live meter while something plays). Nothing sits at the bottom.
-- The synthesized samples start at once, with no lead-in silence.
+  `Tone.start()`. What plays is shown by the button that plays it (Pause in place of Play). There is no sound status
+  in the title bar any more: the user found its words and its moving meter a distraction that served nothing
+  (0.4.5). The live meter stays in the onboarding's sound check, where it answers "can you hear this?".
+- The samples start 1 ms before their attack (`cc0.py`), so there is no lead-in silence to speak of.
 
 ## Design direction: "Stage Daylight"
 

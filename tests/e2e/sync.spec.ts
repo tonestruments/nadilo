@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { expect, test } from '@playwright/test';
 import { openLevel } from './helpers';
 
@@ -20,8 +23,9 @@ test('@audio the playhead moves on every step, in order, at the moment the step 
   });
 
   await page.getByTestId('listen').click();
-  await expect(page.getByTestId('status')).toContainText('Hidden beat', { timeout: 5000 });
-  await expect(page.getByTestId('status')).not.toContainText('Hidden beat', { timeout: 12_000 });
+  const playing = () => page.evaluate(() => (window as any).__nadilo.actor.getSnapshot().context.playing);
+  await expect.poll(playing, { timeout: 5000 }).toBe('target');
+  await expect.poll(playing, { timeout: 12_000 }).toBeNull();
 
   type T = { step: number; scheduled: number; lead: number; latency: number; target: number; fired: number; prevFrame: number; drawn: number };
   const trace = await page.evaluate(() => (window as any).__nadilo.engine.trace as T[]);

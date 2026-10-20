@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { fromCallback, type EventObject } from 'xstate';
 import type { AudioEngine, Mode } from '../audio/types';
 

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { LEVELS } from './levels';
 
 /** Where a player is: the level they are on, and the ids of the levels they have solved. */

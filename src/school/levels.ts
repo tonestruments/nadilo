@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import type { Lane } from '../game/levels';
 import { allBars, barMarks, compare, newIn, sameStarts, visible, type Row } from './match';
 import { changedIn } from './yours';
@@ -77,10 +80,10 @@ export interface Level {
 
 export interface World { name: string; part: Part | 'arr'; color: string; end: string }
 export const WORLDS: readonly World[] = [
-  { name: 'Pulse', part: 'drums', color: 'oklch(64.5% 0.167 35.5)', end: 'Your drums, in the song' },
-  { name: 'The Floor', part: 'bass', color: 'oklch(55.4% 0.154 321.1)', end: 'Your bass, in the song' },
-  { name: 'Color', part: 'chords', color: 'oklch(58% 0.12 158.8)', end: 'Your chords, in the song' },
-  { name: 'Voice', part: 'melody', color: 'oklch(47.1% 0.198 269.9)', end: 'Your tune, in the song' },
+  { name: 'Pulse', part: 'drums', color: 'oklch(64.5% 0.167 35.5)', end: 'Your drums' },
+  { name: 'The Floor', part: 'bass', color: 'oklch(55.4% 0.154 321.1)', end: 'Your bass' },
+  { name: 'Color', part: 'chords', color: 'oklch(58% 0.12 158.8)', end: 'Your chords' },
+  { name: 'Voice', part: 'melody', color: 'oklch(47.1% 0.198 269.9)', end: 'Your tune' },
   { name: 'Story', part: 'arr', color: 'oklch(66% 0.14 72)', end: 'You rebuilt the whole song' },
 ];
 
@@ -137,7 +140,7 @@ export function curriculum(song: Song): Level[] {
     },
     {
       id: 'zoomin', world: 0, title: 'Zoom in', goal: 'Put a Tick on every number and every &.',
-      name: 'Eighth notes', named: 'The tick is a hi-hat. Each beat splits in two, 1 &: each half is an eighth note.',
+      name: 'Eighth notes', named: 'The tick is a hi-hat. Each beat splits in two, 1 &, so a bar holds eight: eighth notes.',
       editor: { kind: 'drums', lanes: DRUMS, res: 8 }, focus: ['hat'], bars: allBars, holes: 'beat1', copy: true,
       partner: ['kick', 'snare'], open: 0, scope: 'one',
       check: (b) => allBars.every((bar) => eighthHats(b, bar) >= 6),
@@ -170,7 +173,7 @@ export function curriculum(song: Song): Level[] {
     },
     {
       id: 'moods', world: 1, title: 'Moods move', goal: 'Bars 2 to 4: same rhythm, new heights.',
-      name: 'Roots', named: 'Each bar’s bass starts on the note its chord is named after: the root.',
+      name: 'Roots', named: 'The bass starts each bar on its root, the note that bar is built on.',
       editor: { kind: 'notes', ladder: 'bass', res: 4 }, focus: ['bass'], bars: [1, 2, 3], holes: 'none', copy: true,
       partner: ['chords'], open: 1, scope: 'one',
       check: (b) => [1, 2, 3].every((bar) => notesIn('bass')(b, bar)),
@@ -188,7 +191,7 @@ export function curriculum(song: Song): Level[] {
     },
     {
       id: 'yours-color', world: 2, title: 'Your colours', goal: 'Change a bar’s colour. Hear the mood move.',
-      name: 'A new mood', named: 'Your colour, and the bass moved with it to its root.',
+      name: 'A new mood', named: 'Your colour has its own root, and the bass moved to it.',
       editor: { kind: 'chords' }, focus: ['chords'], bars: allBars, holes: 'none', copy: false,
       partner: ['bass'], open: 2, scope: 'one', listen: 'mine', noHint: true, yours: { takes: false, carries: ['bass'] },
       check: (b) => allBars.some((bar) => changedIn(song, b, 'chords', bar)),

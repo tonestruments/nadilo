@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { LANE_ORDER, type Lane, type Level } from './levels';
 
 export type Placed = Record<Lane, ReadonlySet<number>>;

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import type { SampleId } from './samples';
 import { leanDelay, stepSeconds } from './schedule';
 import type { Program } from './types';

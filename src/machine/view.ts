@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import type { Reveal } from '../game/logic';
 import { levelOf, type AppSnapshot } from './appMachine';
 

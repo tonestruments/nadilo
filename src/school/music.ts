@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 /**
  * The music under Nadilo School: one key (C minor, like most of the sound library), six chords and two ladders.
  * None of it is shown as theory. A chord is a mood with a colour, a note is a height on a ladder; the words
@@ -22,7 +25,7 @@ export type Ladder = 'bass' | 'melody';
 
 /**
  * The two ladders, lowest first. Bass: C2 E♭2 F2 G2 A♭2 B♭2; the lowest is 65 Hz, above the 55 Hz floor laptop
- * speakers can still play (docs/SOUNDS.md). Tune: G4 B♭4 C5 E♭5 F5 G5, a minor pentatonic around the kalimba's root.
+ * speakers can still play (docs/SOUNDS.md). Tune: G4 B♭4 C5 E♭5 F5 G5, a minor pentatonic around the vibraphone's root (D5).
  */
 export const LADDER: Record<Ladder, readonly number[]> = {
   bass: [36, 39, 41, 43, 44, 46],
@@ -34,7 +37,7 @@ export const ROWS = 6;
 
 export const fits = (mood: Mood, midi: number) => MOODS[mood].pcs.includes(((midi % 12) + 12) % 12);
 
-/** The chord's notes, voiced between G3 and F♯4 so the guitar (root C4) is never moved more than 7 semitones. */
+/** The chord's notes, voiced between G3 and F♯4 so the piano (root C4) is never moved more than 7 semitones. */
 export function voicing(mood: Mood): number[] {
   return MOODS[mood].pcs.map((pc) => (60 + pc > 66 ? 48 + pc : 60 + pc)).sort((a, b) => a - b);
 }

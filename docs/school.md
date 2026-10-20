@@ -8,6 +8,10 @@ quietly teaching, and the words for it. (Why School works this way: [GAME_DESIGN
 School starts by playing you a short song, *First light*, whole. Then you rebuild it, one part at a time, one bar at a
 time.
 
+The song has its own player: Play, a track you can press or drag to move through it, and the song's parts under the
+track (Intro, Verse, Break, Chorus, Outro). Press a part to hear it on its own, over and over; press it again and the
+whole song plays on.
+
 - **One bar on screen.** The song loops four bars. The strip above the instrument shows all four, small; press one
   to work on it. Each bar is its own: changing bar 2 never changes bar 3.
 - **The song or Yours.** *The song* is the song, with the parts you have already rebuilt playing in it. *Yours* is
@@ -38,7 +42,9 @@ The drums are drawn as steps: slots in the bar, each a moment where a hit can go
 | Zoom in | A Tick on every number and every &, every bar | The **hi-hat**, on **eighth notes**: 1 & 2 & 3 & 4 & |
 | The turn | Find what is different about bar 4 | A **fill**: two quick snares lead back to bar 1. Each step is now a **sixteenth note** |
 
-When Pulse is done, the whole song plays with your drums in it.
+Each world ends on the whole song, two ways: *The song*, as you first heard it, and *Yours so far*, only what you have
+made yet (after Pulse, your drums alone). Switch between them while it plays. The way on from a world's last level
+says *Finish Pulse* (or the world's name).
 
 ## The Floor: the bass
 
@@ -49,7 +55,7 @@ is home.
 | Level | You | It is called |
 | --- | --- | --- |
 | Under the boom | Trace bar 1's three notes; drag the first to hold it for two beats | The **bass line**. Two beats long is a **half note**, one beat a **quarter note** |
-| Moods move | Bars 2 to 4: the same rhythm, new heights, by ear | Each bar's bass starts on its chord's **root** |
+| Moods move | Bars 2 to 4: the same rhythm, new heights, by ear | Each bar's bass starts on its **root**, the note the bar is built on (in Color you meet the chord built on it) |
 
 ## Color: the chords
 
@@ -96,7 +102,8 @@ Undo takes back any change or take. *Back to the song's* puts the level's bars b
 ## Your song
 
 At the end of the journey (and from Home): the whole song, The song or Yours, and every part of every bar as a tile,
-gold where it holds a change. Press a tile to loop that bar; The song and Yours then swap just that part, so you hear
+gold where it holds a change. While the song plays, the bar it is in is ringed in each part that plays there, and a
+part that rests there fades. If nothing differs from the song yet, there is only the song to play. Press a tile to loop that bar; The song and Yours then swap just that part, so you hear
 what your change did. Press it again to stop.
 
 ## Today's twist

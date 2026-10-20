@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { defineConfig, devices } from '@playwright/test';
 
 // The Mac app runs in WebKit (WKWebView); Windows runs in Chromium (WebView2). Test both.

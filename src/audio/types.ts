@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import type { Lane } from '../game/levels';
 import type { Pattern } from '../game/logic';
 import type { SampleId, Voice } from './samples';
@@ -90,6 +93,8 @@ export interface AudioEngine {
    */
   playProgram(mode: Mode, program: Program, from?: number): Promise<void>;
   stop(): void;
+  /** The step of the program playing that a pause would pick up from, or null when nothing plays. */
+  position(): number | null;
   /** A lane's crowned sample, now. */
   audition(lane: Lane): Promise<void>;
   /** One sound, now (a pad click, a ladder height, a chord swatch). */

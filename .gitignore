@@ -26,7 +26,7 @@ design/icon/icon-1024.png
 # Original sample copies (the app uses src/assets/audio/)
 /audio/
 
-# Python bytecode (scripts/samples/prepare.py)
+# Python bytecode (scripts/samples/cc0.py)
 __pycache__/
 
 # OS and editor files

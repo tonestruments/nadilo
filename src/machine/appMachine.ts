@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { assign, raise, setup, type SnapshotFrom } from 'xstate';
 import type { AudioEngine, Mode, Sound } from '../audio/types';
 import { clampOffset } from '../audio/calibration';
@@ -10,7 +13,7 @@ import {
   type CheckResult, type Pattern, type Placed,
 } from '../game/logic';
 import {
-  barProgram, chord, hit, line, loopProgram, songProgram, sourcesOwn, sourcesOwned, sourcesSong, tempo, type BarView, type LoopView, type SongView,
+  barProgram, chord, hit, line, loopProgram, partProgram, partSpan, songProgram, sourcesOwn, sourcesOwned, sourcesSong, tempo, type BarView, type LoopView, type SongView,
 } from '../school/mix';
 import { type Ladder, type Mood } from '../school/music';
 import {
@@ -102,6 +105,8 @@ export interface AppContext extends Persisted {
   room: Room;
   /** Where the whole song picks up when played: 0, where it was paused, or where the player moved it. */
   songAt: number;
+  /** The section of the song the player picked to listen to, looped; null for the whole song. */
+  songPart: number | null;
 }
 
 /** A sound to hear on its own, without changing anything: a lane's name, a ladder height, a colour. */
@@ -163,6 +168,8 @@ export type AppEvent =
   | { type: 'SONG.PLAY' }
   /** Move the whole song to a step. If it is playing, it carries on from there. */
   | { type: 'SONG.SEEK'; at: number }
+  /** Listen to one section of the song, looped; the same one again goes back to the whole song. */
+  | { type: 'SONG.PART'; part: number }
   /** Leave the song's introduction for the first level. */
   | { type: 'SONG.START' }
   | TransportEvent;
@@ -232,6 +239,21 @@ export function songView(ctx: Pick<AppContext, 'school'>, meet: boolean): SongVi
   return { song, mine: ctx.school.build, own: ctx.school.own, src: sourcesOwned(owned, yours), ownArr: owned.has('arr' as never) };
 }
 /**
+ * The end of a world. The song is the song as first heard. Yours so far is only what the player has made: the parts
+ * they have rebuilt, with every change they made their own, and nothing of the song's. Their parts play in every
+ * section, since the arrangement is not theirs until Story.
+ */
+export function worldEndView(ctx: Pick<AppContext, 'school' | 'room'>): SongView {
+  const song = songOf(ctx.school);
+  const base = { song, mine: ctx.school.build, own: ctx.school.own, ownArr: false };
+  if (ctx.room.listen === 'song') return { ...base, src: sourcesSong() };
+  const owned = ownedRows(ctx.school);
+  const yours = rowsChanged(song, ctx.school.own);
+  const src = sourcesOwned(owned, yours);
+  for (const r of Object.keys(src) as (keyof typeof src)[]) if (!owned.has(r) && !yours.has(r)) src[r] = null;
+  return { ...base, src, allOn: true };
+}
+/**
  * The player's song on its own screen. The song is the song as first heard. Yours is the player's own song: the song
  * with exactly the changes they made their own, and nothing else, so a near miss in a rebuild is never heard as theirs.
  */
@@ -270,6 +292,15 @@ function editSound(ctx: AppContext, level: Level, edit: Edit, after: Build): Sou
  */
 export function createAppMachine(engine: AudioEngine, clock: () => string = today) {
   const hear = (sounds: Sound[]) => { if (sounds.length) void engine.hear(sounds); };
+  /** The whole song from `songAt`, or the section the player picked, looped, from `songAt` if it is inside it. */
+  const playSong = (ctx: AppContext, view: () => SongView) => {
+    if (ctx.songPart === null) return void engine.playProgram('song', songProgram(view), ctx.songAt);
+    const { start, steps } = partSpan(songOf(ctx.school), ctx.songPart);
+    const from = ctx.songAt >= start && ctx.songAt < start + steps ? ctx.songAt - start : 0;
+    void engine.playProgram('song', partProgram(view, ctx.songPart), from);
+  };
+  /** Where the section being looped starts, in steps of the whole song (the engine counts from there). */
+  const partStart = (ctx: AppContext) => (ctx.songPart === null ? 0 : partSpan(songOf(ctx.school), ctx.songPart).start);
 
   return setup({
     types: {} as { context: AppContext; events: AppEvent; input: AppInput },
@@ -321,6 +352,8 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
       hasOwnSong: ({ context }) => context.school.met && (allDone(context.school) || madeYours(context.school)),
       songFromStory: ({ context }) => context.songFrom === 'story',
       songFromTwist: ({ context }) => context.songFrom === 'twist' && !!todayLevel(context.school),
+      /** The section being looped, pressed again with nothing playing: only the loop is let go. */
+      partOff: ({ context, event }) => event.type === 'SONG.PART' && context.songPart === event.part && context.playing !== 'song',
       isCellPlaying: ({ context, event }) => event.type === 'SONG.CELL' && context.playing === 'bar'
         && context.room.cell?.part === event.cell.part && context.room.cell?.bar === event.cell.bar,
     },
@@ -408,10 +441,8 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
       /** The level's loop: what it plays is read live, so switches, edits and a new bar land on the next step. */
       startLoop: ({ self }) => void engine.playProgram('school', loopProgram(() => loopView(self.getSnapshot().context))),
       markLoop: assign(({ context }) => ({ playing: 'school' as Mode, loop: 1, loops: 0, room: { ...context.room, heard: context.room.heard || context.room.listen === 'song' } })),
-      startMeetSong: ({ context, self }) =>
-        void engine.playProgram('song', songProgram(() => songView(self.getSnapshot().context, true)), context.songAt),
-      startOwnSong: ({ context, self }) =>
-        void engine.playProgram('song', songProgram(() => songView(self.getSnapshot().context, false)), context.songAt),
+      startMeetSong: ({ context, self }) => playSong(context, () => songView(self.getSnapshot().context, true)),
+      startEndSong: ({ context, self }) => playSong(context, () => worldEndView(self.getSnapshot().context)),
       markSong: assign({ playing: 'song' as Mode, loop: 1, loops: 1 }),
       /**
        * One edit. If this level allows it and it changes something, the build changes, the visit remembers the old
@@ -484,19 +515,18 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
         return level ? { school, room: freshRoom(level, true) } : {};
       }),
       // ── the player's song, on its own screen ──
-      openSong: assign(({ context }) => ({ room: { ...context.room, listen: 'mine' as Listen, cell: null }, songAt: 0 })),
+      openSong: assign(({ context }) => ({ room: { ...context.room, listen: 'mine' as Listen, cell: null }, songAt: 0, songPart: null })),
       songFromStory: assign({ songFrom: 'story' as const }),
       songFromTwist: assign({ songFrom: 'twist' as const }),
       songFromHome: assign({ songFrom: 'home' as const }),
-      startYourSong: ({ context, self }) =>
-        void engine.playProgram('song', songProgram(() => yourSongView(self.getSnapshot().context)), context.songAt),
+      startYourSong: ({ context, self }) => playSong(context, () => yourSongView(self.getSnapshot().context)),
       pickCell: assign(({ context, event }) => (event.type === 'SONG.CELL' ? { room: { ...context.room, cell: event.cell } } : {})),
       startBar: ({ self }) => void engine.playProgram('bar', barProgram(() => barView(self.getSnapshot().context))),
       markBar: assign({ playing: 'bar' as Mode, loop: 1, loops: 0 }),
       /** The song remembers where it stopped even when a bar took over from it. */
       songStopped: assign(({ context, event }) => {
         if (event.type !== 'TRANSPORT.ENDED') return {};
-        const at = event.mode === 'song' ? { songAt: event.completed ? 0 : event.at } : {};
+        const at = event.mode === 'song' ? { songAt: event.completed ? 0 : partStart(context) + event.at } : {};
         return { ...at, ...(context.playing === event.mode ? { playing: null } : {}) };
       }),
       schoolHear: ({ context, event }) => {
@@ -513,18 +543,32 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
           celebrate: context.celebrate + 1,
         };
       }),
-      metSong: assign(({ context }) => ({ school: { ...context.school, met: true }, songAt: 0 })),
+      metSong: assign(({ context }) => ({ school: { ...context.school, met: true }, songAt: 0, songPart: null })),
+      /** A move inside the section being looped stays in it; anywhere else goes back to the whole song. */
       songSeek: assign(({ context, event }) => {
         if (event.type !== 'SONG.SEEK') return {};
-        const last = songBars(songOf(context.school)) * STEPS - 1;
-        return { songAt: Math.max(0, Math.min(last, Math.round(event.at) || 0)) };
+        const song = songOf(context.school);
+        const at = Math.max(0, Math.min(songBars(song) * STEPS - 1, Math.round(event.at) || 0));
+        if (context.songPart === null) return { songAt: at };
+        const { start, steps } = partSpan(song, context.songPart);
+        return { songAt: at, songPart: at >= start && at < start + steps ? context.songPart : null };
       }),
+      /** Pick a section to loop, from its top; the same one again goes back to the whole song, from where it is. */
+      songPart: assign(({ context, event }) => {
+        if (event.type !== 'SONG.PART') return {};
+        const { start } = partSpan(songOf(context.school), event.part);
+        if (context.songPart !== event.part) return { songPart: event.part, songAt: start };
+        const pos = context.playing === 'song' ? engine.position() : null;
+        return { songPart: null, songAt: pos === null ? context.songAt : start + pos };
+      }),
+      /** A world ends on what the player has made so far: The song is one press away. */
+      listenYours: assign(({ context }) => ({ room: { ...context.room, listen: 'mine' as Listen } })),
       /** The whole song remembers where it was paused, and starts from the top once it has played to the end. */
       schoolEnded: assign(({ context, event }) => {
         if (event.type !== 'TRANSPORT.ENDED' || context.playing !== event.mode) return {};
-        return { playing: null, ...(event.mode === 'song' ? { songAt: event.completed ? 0 : event.at } : {}) };
+        return { playing: null, ...(event.mode === 'song' ? { songAt: event.completed ? 0 : partStart(context) + event.at } : {}) };
       }),
-      resetSongAt: assign({ songAt: 0 }),
+      resetSongAt: assign({ songAt: 0, songPart: null }),
     },
   }).createMachine({
     id: 'app',
@@ -542,6 +586,7 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
         soundTried: false, soundSeen: false, soundHelp: false,
         room: freshRoom(schoolLevel(school)),
         songAt: 0,
+        songPart: null,
       };
     },
     entry: 'applyOffset',
@@ -654,9 +699,10 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
                     { actions: ['startMeetSong', 'markSong'] },
                   ],
                   'SONG.SEEK': [
-                    { guard: { type: 'isPlaying', params: { mode: 'song' } }, actions: [assign({ playing: null }), 'songSeek', 'startMeetSong', 'markSong'] },
+                    { guard: { type: 'isPlaying', params: { mode: 'song' } }, actions: ['songSeek', 'startMeetSong', 'markSong'] },
                     { actions: 'songSeek' },
                   ],
+                  'SONG.PART': [{ guard: 'partOff', actions: 'songPart' }, { actions: ['songPart', 'startMeetSong', 'markSong'] }],
                   PRIMARY_PLAY: { actions: raise({ type: 'SONG.PLAY' }) },
                   'SONG.START': { target: 'level', actions: ['halt', 'markStopped', 'metSong'] },
                   'SCHOOL.BACK': '#app.game.home',
@@ -706,7 +752,7 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
                   NEXT: [
                     { guard: 'twistSewn', target: 'song', actions: ['halt', 'markStopped', 'songFromTwist', 'openSong'] },
                     { guard: 'storyEnds', target: 'song', actions: ['halt', 'markStopped', 'songFromStory', 'openSong'] },
-                    { guard: 'worldEnds', target: 'worldEnd', actions: ['halt', 'markStopped', 'resetSongAt'] },
+                    { guard: 'worldEnds', target: 'worldEnd', actions: ['halt', 'markStopped', 'resetSongAt', 'listenYours'] },
                     { guard: 'levelDone', target: 'level', reenter: true, actions: ['halt', 'markStopped', 'nextSchool'] },
                   ],
                 },
@@ -719,11 +765,18 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
                 on: {
                   'SONG.PLAY': [
                     { guard: { type: 'isPlaying', params: { mode: 'song' } }, actions: 'halt' },
-                    { actions: ['startOwnSong', 'markSong'] },
+                    { actions: ['startEndSong', 'markSong'] },
                   ],
                   'SONG.SEEK': [
-                    { guard: { type: 'isPlaying', params: { mode: 'song' } }, actions: [assign({ playing: null }), 'songSeek', 'startOwnSong', 'markSong'] },
+                    { guard: { type: 'isPlaying', params: { mode: 'song' } }, actions: ['songSeek', 'startEndSong', 'markSong'] },
                     { actions: 'songSeek' },
+                  ],
+                  'SONG.PART': [{ guard: 'partOff', actions: 'songPart' }, { actions: ['songPart', 'startEndSong', 'markSong'] }],
+                  // The song or Yours so far: switched on the next step while playing, so the two meet at the same moment.
+                  'SCHOOL.LISTEN': [
+                    { guard: 'hearingThis', actions: ['halt', 'markStopped'] },
+                    { guard: { type: 'isPlaying', params: { mode: 'song' } }, actions: 'schoolListen' },
+                    { actions: ['schoolListen', 'startEndSong', 'markSong'] },
                   ],
                   PRIMARY_PLAY: { actions: raise({ type: 'SONG.PLAY' }) },
                   NEXT: [
@@ -747,9 +800,10 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
                     { actions: ['startYourSong', 'markSong'] },
                   ],
                   'SONG.SEEK': [
-                    { guard: { type: 'isPlaying', params: { mode: 'song' } }, actions: [assign({ playing: null }), 'songSeek', 'startYourSong', 'markSong'] },
+                    { guard: { type: 'isPlaying', params: { mode: 'song' } }, actions: ['songSeek', 'startYourSong', 'markSong'] },
                     { actions: 'songSeek' },
                   ],
+                  'SONG.PART': [{ guard: 'partOff', actions: 'songPart' }, { actions: ['songPart', 'startYourSong', 'markSong'] }],
                   PRIMARY_PLAY: [
                     { guard: { type: 'isPlaying', params: { mode: 'bar' } }, actions: ['halt', 'markStopped'] },
                     { actions: raise({ type: 'SONG.PLAY' }) },

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 /// Trackpad haptic feedback (macOS Force Touch trackpads). A no-op elsewhere.
 ///
 /// Sync commands run on the main thread, which AppKit expects.

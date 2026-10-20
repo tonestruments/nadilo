@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { describe, expect, it } from 'vitest';
 import { estimateOffset } from '../../src/audio/calibration';
 import { KIT, STACK_FLAM, STEP_SECONDS, hitsAtStep, stepTime } from '../../src/audio/schedule';

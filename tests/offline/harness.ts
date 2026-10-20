@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { findOnsets, renderInto } from '../../src/audio/render';
 import { KIT } from '../../src/audio/schedule';
 import { STEPS, type Lane } from '../../src/game/levels';

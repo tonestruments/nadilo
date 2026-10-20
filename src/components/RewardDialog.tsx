@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { nextLabel } from '../game/copy';

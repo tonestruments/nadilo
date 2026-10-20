@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createActor } from 'xstate';
 import { FakeEngine } from '../../src/audio/fakeEngine';
@@ -8,7 +11,7 @@ import { FIRST_SONG as SONG, STEPS, emptyBuild, songBars, type Build } from '../
 import { LEVELS } from '../../src/game/levels';
 import { nextLabel } from '../../src/game/copy';
 import { continueIndex, nextIndex } from '../../src/game/progress';
-import { barView, createAppMachine, songView, type AppEvent, type Persisted } from '../../src/machine/appMachine';
+import { barView, createAppMachine, songView, worldEndView, type AppEvent, type Persisted } from '../../src/machine/appMachine';
 
 // The machine runs against the silent FakeEngine: no audio context is ever created.
 const STEP_MS = STEP_SECONDS * 1000;
@@ -490,9 +493,54 @@ describe('school', () => {
     send({ type: 'SONG.SEEK', at: 128 });
     expect(engine.calls.slice(-2)).toEqual(['stop', 'program:song@128']);
     expect(ctx().playing).toBe('song');
+    // The old playback's stop must not pull the place back to where it was (0.4.3 jumped back, then forward).
+    expect(ctx().songAt).toBe(128);
+    vi.advanceTimersByTime(step * 4 + 1);
+    send({ type: 'SONG.PLAY' });
+    expect(ctx().songAt).toBeGreaterThanOrEqual(132);
     send({ type: 'SONG.PLAY' });
     send({ type: 'SONG.SEEK', at: 99_999 });
     expect(ctx().songAt).toBe(songBars(SONG) * STEPS - 1);
+  });
+
+  it('a section of the song can be looped on its own, and let go again from where it is', () => {
+    const { engine, send, ctx } = start({ onboarded: true, school: freshSchool() });
+    send({ type: 'SCHOOL' });
+    const step = stepSeconds(SONG.bpm) * 1000;
+    const verse = SONG.sections[0].bars * STEPS; // the verse starts after the intro
+    const verseLen = SONG.sections[1].bars * STEPS;
+    send({ type: 'SONG.PART', part: 1 });
+    expect(ctx().songPart).toBe(1);
+    expect(ctx().playing).toBe('song');
+    expect(engine.calls.at(-1)).toBe('program:song'); // the verse's own program, from its top
+    // It loops: past the verse's end it is still in the verse.
+    vi.advanceTimersByTime(step * (verseLen + 3) + 1);
+    send({ type: 'SONG.PLAY' }); // pause
+    expect(ctx().songAt).toBeGreaterThanOrEqual(verse);
+    expect(ctx().songAt).toBeLessThan(verse + 8);
+    send({ type: 'SONG.PLAY' });
+    expect(ctx().songPart).toBe(1);
+    // A move inside the verse stays looped; outside it, the whole song plays on from there.
+    send({ type: 'SONG.SEEK', at: verse + 32 });
+    expect(ctx().songPart).toBe(1);
+    expect(engine.calls.at(-1)).toBe('program:song@32');
+    send({ type: 'SONG.SEEK', at: 4 });
+    expect(ctx().songPart).toBeNull();
+    expect(engine.calls.at(-1)).toBe('program:song@4');
+    // Pressed again while it plays, the whole song carries on from where the loop was.
+    send({ type: 'SONG.PART', part: 1 });
+    vi.advanceTimersByTime(step * 5 + 1);
+    send({ type: 'SONG.PART', part: 1 });
+    expect(ctx().songPart).toBeNull();
+    expect(ctx().playing).toBe('song');
+    expect(engine.calls.at(-1)).toBe(`program:song@${verse + 6}`);
+    // With nothing playing, pressing the looped section only lets the loop go.
+    send({ type: 'SONG.PART', part: 4 });
+    send({ type: 'SONG.PLAY' });
+    const n = engine.calls.length;
+    send({ type: 'SONG.PART', part: 4 });
+    expect(ctx().songPart).toBeNull();
+    expect(engine.calls.length).toBe(n);
   });
 
   it('a press changes exactly one pad, in its own bar, and sounds on the press', () => {
@@ -628,7 +676,19 @@ describe('school', () => {
     expect(s().hasTag('schoolEnd')).toBe(true);
     send({ type: 'PRIMARY_PLAY' });
     expect(engine.calls.at(-1)).toBe('program:song');
-    expect(songView(ctx(), false).src.kick).toBe('own'); // the player's own fill, in the song
+    // It opens on Yours so far: only what the player has made (their drums, their own fill), in every section.
+    expect(ctx().room.listen).toBe('mine');
+    const yours = worldEndView(ctx());
+    expect(yours.src.kick).toBe('own');
+    expect(yours.src.snare).toBe('mine');
+    expect([yours.src.bass, yours.src.chords, yours.src.melody]).toEqual([null, null, null]);
+    expect(yours.allOn).toBe(true);
+    // The song is the song as first heard, switched on the next step without a restart.
+    const calls = engine.calls.length;
+    send({ type: 'SCHOOL.LISTEN', listen: 'song' });
+    expect(engine.calls.length).toBe(calls);
+    expect(Object.values(worldEndView(ctx()).src).every((x) => x === 'song')).toBe(true);
+    expect(songView(ctx(), false).src.kick).toBe('own');
     send({ type: 'NEXT' });
     expect(s().hasTag('schoolLevel')).toBe(true);
     expect(ctx().school.level).toBe(at('floor'));

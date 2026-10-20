@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import type { Lane } from '../game/levels';
 import type { Pattern } from '../game/logic';
 import { drumProgram, stepSeconds } from './schedule';
@@ -37,7 +40,7 @@ export class FakeEngine implements AudioEngine {
   }
 
   async playProgram(mode: Mode, program: Program, from = 0, call = from ? `program:${mode}@${from}` : `program:${mode}`) {
-    this.stop();
+    this.stop(this.current?.mode === mode);
     this.started = true;
     this.calls.push(call);
     const current = { mode, loops: program.loops, next: from % program.steps };
@@ -66,14 +69,15 @@ export class FakeEngine implements AudioEngine {
     tick();
   }
 
-  stop() {
+  /** `quiet`: a new playback of the same kind takes over at once, so no end is reported (as in ToneEngine). */
+  stop(quiet = false) {
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     if (this.current) {
       const { mode, next } = this.current;
       this.current = null;
       this.calls.push('stop');
-      this.emit({ type: 'end', mode, completed: false, at: next });
+      if (!quiet) this.emit({ type: 'end', mode, completed: false, at: next });
     }
   }
 
@@ -83,6 +87,10 @@ export class FakeEngine implements AudioEngine {
 
   async hear(sounds: Sound[]) {
     this.calls.push(`hear:${sounds.map((s) => s.sample + (s.midi !== undefined ? `@${s.midi}` : '')).join('+')}`);
+  }
+
+  position() {
+    return this.current?.next ?? null;
   }
 
   level() {

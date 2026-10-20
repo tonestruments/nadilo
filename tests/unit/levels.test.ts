@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { describe, expect, it } from 'vitest';
 import { LEVELS, STEPS, type Lane } from '../../src/game/levels';
 import { givenOf, laneFullyGiven, patternKey, targetOf } from '../../src/game/logic';

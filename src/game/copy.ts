@@ -1,5 +1,8 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import type { Mode } from '../audio/types';
-import { LANE_NAME, LANE_WORD, LEVELS, STEPS, type Lane, type Level } from './levels';
+import { LANE_WORD, LEVELS, STEPS, type Lane, type Level } from './levels';
 import { givenOf, laneFullyGiven, placedCount, targetOf, wrongLanes, type CheckResult, type Placed, type Reveal } from './logic';
 import { allSolved, nextIndex, type Place } from './progress';
 
@@ -104,15 +107,3 @@ export function coachTip(v: View & { misses?: Partial<Record<Lane, number>> }, a
   return asked ? sayIt(v) : null;
 }
 
-export function playingLabel(mode: Mode | null): string {
-  if (!mode) return '';
-  if (mode === 'target') return 'Hidden beat';
-  if (mode === 'mine') return 'Your beat';
-  if (mode === 'reveal') return 'The beat';
-  if (mode === 'test') return 'Test sound';
-  if (mode === 'calibrate') return 'Sync check';
-  // School's loops and songs are often the player's own: the status says that something plays, not whose it is.
-  if (mode === 'school' || mode === 'bar' || mode === 'song') return 'Playing';
-  if (mode === 'track') return 'Your track';
-  return `${LANE_NAME[mode.slice(5) as Lane]} alone`;
-}

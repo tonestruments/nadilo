@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { send, useApp } from '../../machine/actor';
 import { WORLDS } from '../../school/levels';
 import { levelsFor, unlocked } from '../../school/rules';

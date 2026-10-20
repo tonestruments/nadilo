@@ -1,10 +1,13 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useEffect, useRef } from 'react';
 import { engine } from '../../audio/engine';
 import type { EngineEvent } from '../../audio/types';
 import { snapshot, useApp } from '../../machine/actor';
 import type { AppSnapshot } from '../../machine/appMachine';
 import { WORLDS } from '../../school/levels';
-import { loopBar } from '../../school/mix';
+import { loopBar, partSpan } from '../../school/mix';
 import { activeDone, activeLevel, buildFor, ownedRows, songOf } from '../../school/rules';
 import { STEPS } from '../../school/song';
 
@@ -69,7 +72,9 @@ export function useNeedle(onStep: (n: Needle) => void, onStop: () => void) {
     const { context } = snapshot();
     const song = songOf(context.school);
     const level = activeLevel(context);
-    let songBar = Math.floor(e.pos / STEPS);
+    // A section looped on its own counts its steps from the section's top.
+    const pos = e.mode === 'song' && context.songPart !== null ? partSpan(song, context.songPart).start + e.pos : e.pos;
+    let songBar = Math.floor(pos / STEPS);
     let unit = songBar;
     if (e.mode === 'school') {
       songBar = loopBar({ song, level, scope: context.room.scope, unit: context.room.bar }, e.pos);
@@ -77,7 +82,7 @@ export function useNeedle(onStep: (n: Needle) => void, onStop: () => void) {
     } else if (e.mode === 'bar') {
       songBar = unit = context.room.cell?.bar ?? 0;
     } else unit = sectionOf(song, songBar);
-    handlers.current.onStep({ unit, songBar, step: e.pos % STEPS, mode: e.mode, pos: e.pos });
+    handlers.current.onStep({ unit, songBar, step: pos % STEPS, mode: e.mode, pos });
   }), []);
 }
 

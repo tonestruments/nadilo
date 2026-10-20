@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { LEVELS, STEPS, type Level } from '../game/levels';

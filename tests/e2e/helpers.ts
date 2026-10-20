@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { expect, type Page } from '@playwright/test';
 
 type Lane = 'hat' | 'snare' | 'kick';

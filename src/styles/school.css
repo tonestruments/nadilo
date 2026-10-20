@@ -1,3 +1,6 @@
+/* Copyright (C) 2026 Tonestruments AB
+   SPDX-License-Identifier: GPL-3.0-only */
+
 /* ═══════════════════════ Nadilo School ═══════════════════════
    Written to good-css.com: OKLCH tokens, logical properties, hover only where hover exists, press feedback on
    everything pressable, motion only for those who have not asked for less.
@@ -190,7 +193,9 @@
   background: var(--s-yours); transform: rotate(45deg) scale(0.8); visibility: hidden;
 }
 .s-tile[data-changed] .s-patch { visibility: visible; }
-.s-mini .s-gold { outline: 1.5px solid var(--s-yours); outline-offset: 1.5px; border-radius: 2px; }
+/* What the player changed is sewn in gold thread, not ringed: the rows are close, and rings ran into each other. */
+:is(.s-mini, .s-mc) .s-gold { --c: var(--s-yours); }
+:is(.s-mini, .s-mc) .s-mini-chord.s-gold { box-shadow: inset 0 0 0 1.5px var(--s-yours); }
 /* A bar in miniature: 16 steps across, a row per part (the tune, the colour, the floor, hi-hat, snare, kick). */
 .s-mini {
   display: grid; grid-template-columns: repeat(16, minmax(0, 1fr));
@@ -368,7 +373,7 @@
 .s-block[data-gold] {
   box-shadow: inset 0 0 0 2px color-mix(in oklch, var(--mood), black 20%), 0 0 0 4px var(--s-cloth), 0 0 0 7px var(--s-yours);
 }
-.s-bassline[data-gold] { opacity: 1; box-shadow: 0 0 0 2px var(--s-yours); }
+.s-bassline[data-gold] { opacity: 1; background: var(--s-yours); }
 .s-under { position: relative; display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); align-items: end; }
 .s-bassline { block-size: 4px; border-radius: 99px; background: var(--s-bass); margin-block-end: calc(var(--h) * 1rem); margin-inline: 0.15rem; opacity: 0.75; }
 .s-palette { display: flex; gap: var(--s-space-s); justify-content: center; padding-block: 0.4rem 0.1rem; }
@@ -452,31 +457,52 @@
 .s-song-screen .s-kicker { font-size: var(--s-step--1); font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--world); }
 .s-song-screen h1 { font-size: calc(var(--s-step-4) * 1.12); font-weight: 750; letter-spacing: -0.025em; line-height: 1.08; }
 .s-song-screen .s-line { max-inline-size: 36rem; font-size: var(--s-step-1); line-height: 1.5; color: var(--s-mute); }
+/* The player: Play on the centre line; under it the track, a thin line with the time either side, and the song's
+   sections under the track, each as wide as it lasts. No card: the song is the one thing on this screen. */
 .s-player {
-  inline-size: min(48rem, 100%); margin-block: var(--s-space-l) var(--s-space-m);
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: var(--s-space-l);
-  padding: 1.1rem 1.5rem; border-radius: 1.4rem; background: var(--s-card); box-shadow: var(--s-shadow);
+  inline-size: min(48rem, 100%); margin-block: var(--s-space-m) var(--s-space-s);
+  display: grid; justify-items: center; row-gap: var(--s-space-s);
 }
-.s-ribbon {
-  display: grid; padding-inline: 0.9rem; border-radius: 0.9rem;
-  background:
-    repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in oklch, var(--s-thread) 4%, transparent) 7px 8px),
-    var(--s-cloth);
+.s-seek {
+  inline-size: 100%;
+  display: grid; grid-template-columns: 3.2rem minmax(0, 1fr) 3.2rem; align-items: center; column-gap: 0.9rem; row-gap: 0.55rem;
 }
-.s-ribbon input[type='range'] { inline-size: 100%; block-size: 3.25rem; margin: 0; background: transparent; cursor: pointer; appearance: none; -webkit-appearance: none; }
-/* The part already played is sewn with a running stitch, up to the playhead. The playhead stays inside the cloth. */
-.s-ribbon input[type='range']::-webkit-slider-runnable-track {
-  block-size: 3.25rem;
-  background: repeating-linear-gradient(90deg, var(--s-thread) 0 12px, transparent 12px 19px) 0 50% / calc(var(--pf, 0) * (100% - 0.35rem)) 2.5px no-repeat;
+.s-time { font-size: var(--s-step--1); font-weight: 700; color: var(--s-mute); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.s-seek > .s-time:first-child { justify-self: end; color: var(--s-ink); }
+.s-seek > .s-time:last-of-type { justify-self: start; }
+/* The track: 1.75rem tall to press, a 5px line to see. Played is ink, the rest a wash; a looped section is a band. */
+.s-track {
+  --pf: 0;
+  position: relative; block-size: 1.75rem; cursor: pointer; touch-action: none;
+  border-radius: 99px;
 }
-.s-ribbon input[type='range']::-webkit-slider-thumb {
-  appearance: none; -webkit-appearance: none; inline-size: 0.35rem; block-size: 2.3rem; margin-block-start: 0.475rem;
-  border-radius: 99px; background: var(--s-thread); box-shadow: 0 0 0 2px var(--s-cloth);
+.s-track::before, .s-track-done, .s-track-loop {
+  content: ''; position: absolute; inset-inline: 0; inset-block-start: calc(50% - 2.5px); block-size: 5px; border-radius: 99px;
 }
-.s-ribbon input[type='range']::-moz-range-track { block-size: 3.25rem; background: transparent; }
-.s-ribbon input[type='range']::-moz-range-thumb { inline-size: 0.35rem; block-size: 2.3rem; border: 0; border-radius: 99px; background: var(--s-thread); }
-.s-time { font-weight: 700; color: var(--s-mute); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.s-time span { color: var(--s-ink); }
+.s-track::before { background: var(--s-wash-strong); }
+.s-track-done { inline-size: calc(var(--pf) * 100%); background: var(--s-ink); }
+.s-track-loop {
+  display: none; inset-inline-start: calc(var(--ls, 0) * 100%); inline-size: calc(var(--lw, 0) * 100%);
+  inset-block-start: calc(50% - 5px); block-size: 10px; background: color-mix(in oklch, var(--world, var(--s-ink)) 26%, transparent);
+}
+.s-track-loop[data-on] { display: block; }
+.s-track-thumb {
+  position: absolute; inset-block-start: 50%; inset-inline-start: calc(var(--pf) * 100%);
+  inline-size: 1rem; block-size: 1rem; border-radius: 50%; translate: -50% -50%;
+  background: var(--s-ink); box-shadow: 0 0 0 3px var(--s-page);
+}
+.s-track[data-held] .s-track-thumb { scale: 1.25; }
+.s-track:focus-visible { outline: 2px solid var(--s-ink); outline-offset: 3px; }
+/* The sections, under the track and exactly as long: the one playing is ink; the one looped is a pill. */
+.s-parts-row { grid-column: 2; display: grid; }
+.s-songpart {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; min-inline-size: 0; block-size: 2rem;
+  margin-inline: 0.12rem; padding-inline: 0.4rem; border-radius: 99px;
+  font-size: var(--s-step--1); font-weight: 700; color: var(--s-dim); white-space: nowrap;
+}
+.s-songpart[data-now] { color: var(--s-ink); }
+.s-songpart[aria-pressed='true'] { background: var(--s-ink); color: var(--s-on-ink); }
+.s-songpart .s-ico { inline-size: 0.95rem; block-size: 0.95rem; }
 
 /* ── the player's song: the whole song, and every part of every bar as a map ── */
 .s-yours-screen { row-gap: var(--s-space-xs); align-content: center; padding-block: var(--s-space-s); }
@@ -505,7 +531,9 @@
 /* A tile that holds a change of the player's own is ringed in gold; the one looping is ringed in ink. */
 .s-mapcell[data-gold] { box-shadow: var(--s-shadow), inset 0 0 0 2.5px var(--s-yours); }
 .s-mapcell[aria-pressed='true'] { outline: 2.5px solid var(--s-ink); outline-offset: 3px; }
-.s-mapcell[data-rest] .s-mc { opacity: 0.25; }
+/* While the whole song plays: the bar it is in is ringed in each playing part's colour; a part resting fades out. */
+.s-mapcell[data-now]:not([data-rest]) { outline: 3px solid var(--c); outline-offset: 2px; }
+.s-mapcell[data-rest], .s-map-part[data-rest] { opacity: 0.3; }
 .s-mapcell[data-now] .s-tile-needle { opacity: 1; }
 .s-mapcell .s-tile-needle { inset-inline-start: calc(0.7rem + var(--at, 0) * (100% - 1.4rem)); }
 .s-mc { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); align-items: center; min-block-size: 0; }
@@ -522,7 +550,6 @@
   background-image: repeating-linear-gradient(90deg, transparent 0 11px, color-mix(in oklch, white 14%, transparent) 11px 13px);
 }
 .s-mc-basted { grid-template-columns: minmax(0, 1fr); }
-.s-mc .s-gold { outline: 1.5px solid var(--s-yours); outline-offset: 1.5px; border-radius: 2px; }
 
 /* ── the journey, in the title bar ── */
 .s-journey { display: flex; align-items: center; gap: 0.6rem; block-size: 44px; }
@@ -558,10 +585,12 @@
   .s-jn.s-jn-yours:not(:disabled):hover { transform: rotate(45deg) scale(1.1); }
   .s-mapcell:hover { outline: 2px solid var(--s-line-strong); outline-offset: 3px; }
   .s-mapcell[aria-pressed='true']:hover { outline-color: var(--s-ink); }
+  .s-songpart:not([aria-pressed='true']):hover { background: var(--s-wash-strong); color: var(--s-ink); }
+  .s-track:hover .s-track-thumb { scale: 1.25; }
 }
 
 /* Press feedback. The colour of a pad is instant; only the small squeeze moves, and only if motion is welcome. */
-:is(.s-sbtn, .s-sicon, .s-jarrow, .s-chip, .s-seg, .s-splay, .s-tile, .s-swatch, .s-band, .s-block, .s-lane-name, .s-height, .s-mapcell):active:not(:disabled):not([aria-disabled]) { transform: scale(0.97); }
+:is(.s-sbtn, .s-sicon, .s-jarrow, .s-chip, .s-seg, .s-splay, .s-tile, .s-swatch, .s-band, .s-block, .s-lane-name, .s-height, .s-mapcell, .s-songpart):active:not(:disabled):not([aria-disabled]) { transform: scale(0.97); }
 .s-pad:active { transform: scale(0.96); }
 @media (prefers-reduced-motion: no-preference) {
   :is(.s-sbtn, .s-sicon, .s-jarrow, .s-chip, .s-seg, .s-splay, .s-tile, .s-swatch, .s-band, .s-block, .s-lane-name, .s-height, .s-pad, .s-jn, .s-mapcell) {

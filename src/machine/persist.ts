@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { inTauri, invoke } from '../lib/tauri';
 import { savedSchool, sanitizeSchool } from '../school/rules';
 import { DEFAULTS, type LevelRecord, type Persisted } from './appMachine';

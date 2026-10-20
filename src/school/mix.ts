@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { LANE_ORDER, type Lane } from '../game/levels';
 import { KIT, MAX_LEAN, STACK_FLAM } from '../audio/schedule';
 import type { Program, Sound } from '../audio/types';
@@ -186,6 +189,8 @@ export interface SongView {
   src: Sources;
   /** Play the player's arrangement instead of the song's. */
   ownArr: boolean;
+  /** Every part plays in every section (what the player has made so far, before they arrange it). */
+  allOn?: boolean;
 }
 
 /** The whole song, once, in its arrangement. It can start anywhere (a resume, a seek). */
@@ -196,7 +201,7 @@ export function songProgram(view: () => SongView): Program {
     const bar = Math.floor(pos / STEPS);
     const section = sectionAt(v.song, bar).index;
     const arr = (v.ownArr ? v.mine : v.song.parts).arr;
-    const on = (p: Part) => arr[p][section];
+    const on = (p: Part) => v.allOn || arr[p][section];
     return (ring ? ringingAt : soundsAt)(v.song, { mine: v.mine, own: v.own }, v.src, bar % BARS, pos % STEPS, stepSec, on);
   };
   return {
@@ -207,6 +212,28 @@ export function songProgram(view: () => SongView): Program {
     at: (pos, stepSec) => at(pos, stepSec, false),
     resume: (pos, stepSec) => at(pos, stepSec, true),
   };
+}
+
+/**
+ * One section of the whole song (`part`, an index into its sections), looped until stopped: what the song player plays
+ * when the player picks a part of the song to listen to. Its steps count from the section's first bar.
+ */
+export function partProgram(view: () => SongView, part: number): Program {
+  const whole = songProgram(view);
+  const v0 = view();
+  const start = sectionStart(v0.song, part) * STEPS;
+  return {
+    ...whole,
+    steps: v0.song.sections[part].bars * STEPS,
+    loops: 0,
+    at: (pos, stepSec) => whole.at(start + pos, stepSec),
+    resume: (pos, stepSec) => whole.resume!(start + pos, stepSec),
+  };
+}
+
+/** Where a section starts and how long it is, in steps of the whole song. */
+export function partSpan(song: Song, part: number): { start: number; steps: number } {
+  return { start: sectionStart(song, part) * STEPS, steps: song.sections[part].bars * STEPS };
 }
 
 export interface BarView {

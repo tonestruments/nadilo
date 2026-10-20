@@ -4,77 +4,77 @@
   "sounds": {
     "kick-round": {
       "role": "kick",
-      "label": "Round",
+      "label": "Middle mic",
       "file": "kick-round.wav",
-      "source": "scripts/samples/synth.py",
-      "seconds": 0.45
+      "source": "Virtuosity Drums",
+      "seconds": 0.42
     },
     "kick-deep": {
       "role": "kick",
-      "label": "Deep",
+      "label": "Harder",
       "file": "kick-deep.wav",
-      "source": "scripts/samples/synth.py",
-      "seconds": 0.45
+      "source": "Virtuosity Drums",
+      "seconds": 0.42
     },
     "snare-snap": {
       "role": "snare",
-      "label": "Snap",
+      "label": "Open",
       "file": "snare-snap.wav",
-      "source": "scripts/samples/synth.py",
-      "seconds": 0.3
+      "source": "Virtuosity Drums",
+      "seconds": 0.4
     },
     "snare-rim": {
       "role": "snare",
-      "label": "Rim",
+      "label": "Cross-stick",
       "file": "snare-rim.wav",
-      "source": "scripts/samples/synth.py",
-      "seconds": 0.17
+      "source": "Virtuosity Drums",
+      "seconds": 0.4
     },
     "hat-bright": {
       "role": "hat",
       "label": "Bright",
       "file": "hat-bright.wav",
-      "source": "scripts/samples/synth.py",
+      "source": "Swirly Drums",
       "seconds": 0.25
     },
     "hat-shaker": {
       "role": "hat",
       "label": "Shaker",
       "file": "hat-shaker.wav",
-      "source": "scripts/samples/synth.py",
-      "seconds": 0.2
+      "source": "Virtuosity Drums",
+      "seconds": 0.25
     },
     "bass": {
       "role": "bass",
       "label": "Bass guitar",
       "file": "bass.wav",
-      "source": "scripts/samples/synth.py",
+      "source": "Big Little Bass",
       "seconds": 3.0,
       "root": 36
     },
     "keys": {
       "role": "keys",
-      "label": "Guitar",
+      "label": "Piano",
       "file": "keys.wav",
-      "source": "scripts/samples/synth.py",
+      "source": "Osiris Piano",
       "seconds": 3.2,
       "root": 60
     },
     "pad": {
       "role": "pad",
-      "label": "Pad",
+      "label": "Quiet organ",
       "file": "pad.wav",
-      "source": "scripts/samples/synth.py",
+      "source": "VCSL",
       "seconds": 4.5,
       "root": 60
     },
     "kalimba": {
       "role": "lead",
-      "label": "Kalimba",
+      "label": "Vibraphone",
       "file": "kalimba.wav",
-      "source": "scripts/samples/synth.py",
+      "source": "VCSL",
       "seconds": 2.4,
-      "root": 72
+      "root": 74
     }
   }
 }

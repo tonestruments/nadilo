@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Tonestruments AB
+// SPDX-License-Identifier: GPL-3.0-only
+
 import { expect, test, type Page } from '@playwright/test';
 import { freshSchool, levelsOf, twistToday, type SchoolSaved } from '../../src/school/rules';
 import { FIRST_SONG as SONG, type Build } from '../../src/school/song';
@@ -37,6 +40,7 @@ test('the player\'s song: each part of each bar is a tile; a press loops it, The
   await expect(page.getByTestId('your-song')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Your song' })).toBeVisible();
   await expect(page.locator('.s-mapcell')).toHaveCount(16);
+  await expect(page.getByTestId('listen-mine')).toBeVisible(); // there is a difference to hear
   await expect(page.locator('.s-mapcell[data-gold]')).toHaveCount(3); // the fill, the colour, and the bass that moved with it
   for (const cell of ['cell-drums-3', 'cell-chords-2', 'cell-bass-2']) await expect(page.getByTestId(cell)).toHaveAttribute('data-gold', '');
   // Every tile is big enough to read and to press.
@@ -63,6 +67,14 @@ test('the player\'s song: each part of each bar is a tile; a press loops it, The
   await page.getByTestId('song-next').click();
   await expect(page.getByRole('heading', { name: 'Welcome back' })).toBeVisible();
   expect((await ctx(page)).playing).toBeNull();
+});
+
+test('with nothing changed, the player\'s song offers no The song | Yours: there is nothing to tell apart', async ({ page }) => {
+  await load(page, { ...finished(), own: clone(SONG.parts) });
+  await page.getByTestId('school-continue').click();
+  await expect(page.getByRole('heading', { name: 'The song, rebuilt' })).toBeVisible();
+  await expect(page.getByTestId('listen-mine')).toHaveCount(0);
+  await expect(page.getByTestId('song-play')).toBeVisible();
 });
 
 test('today\'s twist: offered on Home once something is the player\'s own, kept into the sampler, heard in their song', async ({ page }) => {
