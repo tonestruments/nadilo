@@ -13,7 +13,7 @@ import { BARS, PARTS, STEPS, sectionAt, sectionStart, songBars, type Build, type
 /**
  * What School plays, step by step. Pure, so tests can listen without a sound card: the engine asks a program for
  * each step as it plays, and the program reads the live state, so an edit, a switch between The song and Yours, Up
- * close, a new bar on screen or Slow all land on the next step without a restart.
+ * close, Solo, a new bar on screen or Slow all land on the next step without a restart.
  */
 
 /** Rows that sound: the drum lanes, the bass, the chords and the tune. */
@@ -31,21 +31,25 @@ export const SLOW = 0.75;
 /**
  * Who plays each row in a level. The rows this level rebuilds are the song's in The song, and the player's in Yours.
  * Rows rebuilt in earlier levels are the player's. Rows not reached yet are the song's: heard, never drawn. Up close
- * keeps only this level's rows and their partner, in either.
+ * keeps only this level's rows and their partner, in either; Solo keeps only this level's part (every drum, if the
+ * level is about drums).
  *
  * Rows the player has made their own (`yours`: they differ from the song in their own song) play their own notes. In
  * Make it yours, this level's rows are the song's in The song and the player's own in Yours, so the A and the B differ
  * by exactly what the player changed.
  */
-export function sourcesFor(level: Level, owned: ReadonlySet<Row>, listen: Listen, close = false, yours: ReadonlySet<Row> = new Set()): Sources {
+export function sourcesFor(level: Level, owned: ReadonlySet<Row>, listen: Listen, close = false, yours: ReadonlySet<Row> = new Set(), solo = false): Sources {
   const out = {} as Sources;
   const arr = level.focus.includes('arr');
   const rows = [...level.focus, ...(level.yours?.carries ?? [])];
+  const drums = level.focus.some((r) => (LANE_ORDER as readonly Row[]).includes(r));
+  const part = (r: Voiced) => level.focus.includes(r) || (drums && (LANE_ORDER as readonly Voiced[]).includes(r));
   const theirs: Source = level.yours ? 'own' : 'mine';
   for (const r of VOICED) {
     const focus = rows.includes(r);
     let src: Source | null = focus ? (listen === 'mine' ? theirs : 'song') : yours.has(r) ? 'own' : owned.has(r) || arr ? 'mine' : 'song';
     if (close && !focus && !level.partner.includes(r)) src = null;
+    if (solo && !part(r)) src = null;
     out[r] = src;
   }
   return out;
@@ -137,6 +141,7 @@ export interface LoopView {
   yours?: ReadonlySet<Row>;
   listen: Listen;
   close: boolean;
+  solo?: boolean;
   scope: Scope;
   /** The bar (or section) on screen. */
   unit: number;
@@ -170,8 +175,8 @@ export function loopProgram(view: () => LoopView): Program {
       const v = view();
       const bar = loopBar(v, pos);
       const arrange = v.level.editor.kind === 'arr';
-      // The Story world has no Up close: its part is the arrangement itself.
-      const src = sourcesFor(v.level, v.owned, v.listen, v.close && !arrange, v.yours);
+      // The Story world has no Up close or Solo: its part is the arrangement itself.
+      const src = sourcesFor(v.level, v.owned, v.listen, v.close && !arrange, v.yours, !!v.solo && !arrange);
       const b = { mine: v.mine, own: v.own };
       if (!arrange) return soundsAt(v.song, b, src, bar, pos % STEPS, stepSec);
       const arr = (v.listen === 'mine' ? v.mine : v.song.parts).arr;

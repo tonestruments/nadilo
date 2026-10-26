@@ -49,8 +49,9 @@ export interface Cell { part: Part; bar: number }
  * Whose version the player is listening to while they work, an A and a B heard at the same moment of the bar:
  * - `song`: the song, with every part the player has rebuilt in place of the song's own;
  * - `mine`: the song with a hole where this part was, filled by the player's notes.
- * Either can be heard Up close (`Room.close`): this level's part with the one part it talks to. The song's part is
- * never heard on its own: that would hand over the answer. The player's own part can be, since it is theirs.
+ * Either can be heard Up close (`Room.close`): this level's part with the one part it talks to; or Solo
+ * (`Room.solo`): this level's part and nothing else (the whole kit, in a drums level), so the player can hear what
+ * that part sounds like (the user's call, 2026-10-24, after the 0.4.5 playtest).
  */
 export type Listen = 'song' | 'mine';
 
@@ -61,6 +62,8 @@ export interface Room {
   listen: Listen;
   /** Up close: only this level's part and its partner. */
   close: boolean;
+  /** Solo: only this level's part. Never on with Up close. */
+  solo: boolean;
   scope: Scope;
   slow: boolean;
   hint: boolean;
@@ -96,7 +99,7 @@ export function freshSchool(songId = 'first'): SchoolSaved {
 
 export function freshRoom(level: Level, twist = false): Room {
   return {
-    bar: level.open, listen: level.listen ?? 'song', close: false, scope: level.scope, slow: false, hint: false, history: [],
+    bar: level.open, listen: level.listen ?? 'song', close: false, solo: false, scope: level.scope, slow: false, hint: false, history: [],
     heard: false, twist, takes: 0, cell: null,
   };
 }

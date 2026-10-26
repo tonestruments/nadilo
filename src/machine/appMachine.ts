@@ -147,6 +147,8 @@ export type AppEvent =
   | { type: 'SCHOOL.LISTEN'; listen: Listen }
   /** Up close, on or off, for whichever of the two is heard: this part and the one it plays with. */
   | { type: 'SCHOOL.CLOSE' }
+  /** Solo, on or off, for whichever of the two is heard: this part and nothing else. */
+  | { type: 'SCHOOL.SOLO' }
   /** Back a step along School: the level before, or the song before the first level, or Home from the song. */
   | { type: 'SCHOOL.BACK' }
   | { type: 'SCHOOL.PLAY' }
@@ -225,7 +227,7 @@ export function loopView(ctx: Pick<AppContext, 'school' | 'room'>): LoopView {
   const song = songOf(school);
   return {
     song, mine: school.build, own: school.own, level: activeLevel(ctx), owned: ownedRows(school), yours: rowsChanged(song, school.own),
-    listen: room.listen, close: room.close, scope: room.scope, unit: room.bar, slow: room.slow,
+    listen: room.listen, close: room.close, solo: room.solo, scope: room.scope, unit: room.bar, slow: room.slow,
   };
 }
 /**
@@ -311,6 +313,7 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
       /** The one asked for is the one playing: pressing it again stops it. */
       hearingThis: ({ context, event }) => event.type === 'SCHOOL.LISTEN' && context.playing !== null && context.room.listen === event.listen,
       closeOff: ({ context }) => !context.room.close,
+      soloOff: ({ context }) => !context.room.solo,
       firstLevel: ({ context }) => context.school.level === 0,
       hintPlaying: ({ context }) => !!firstWrongLane(context) && context.playing === `solo:${firstWrongLane(context)}`,
       hasWrongLane: ({ context }) => !!firstWrongLane(context),
@@ -495,7 +498,9 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
       }),
       schoolListen: assign(({ context, event }) => (event.type === 'SCHOOL.LISTEN'
         ? { room: { ...context.room, listen: event.listen, heard: context.room.heard || event.listen === 'song' } } : {})),
-      schoolClose: assign(({ context }) => ({ room: { ...context.room, close: !context.room.close } })),
+      // Up close and Solo are two ways of leaving parts out: turning one on turns the other off.
+      schoolClose: assign(({ context }) => ({ room: { ...context.room, close: !context.room.close, solo: false } })),
+      schoolSolo: assign(({ context }) => ({ room: { ...context.room, solo: !context.room.solo, close: false } })),
       schoolScope: assign(({ context, event }) => (event.type === 'SCHOOL.SCOPE' ? { room: { ...context.room, scope: event.scope } } : {})),
       schoolSlow: assign(({ context }) => ({ room: { ...context.room, slow: !context.room.slow } })),
       schoolHint: assign(({ context }) => ({ room: { ...context.room, hint: !context.room.hint } })),
@@ -728,6 +733,12 @@ export function createAppMachine(engine: AudioEngine, clock: () => string = toda
                     // Asking to hear it up close, with nothing playing, plays it.
                     { guard: 'closeOff', actions: ['schoolClose', 'startLoop', 'markLoop'] },
                     { actions: 'schoolClose' },
+                  ],
+                  'SCHOOL.SOLO': [
+                    { guard: { type: 'isPlaying', params: { mode: 'school' } }, actions: 'schoolSolo' },
+                    // Asking to hear the part on its own, with nothing playing, plays it.
+                    { guard: 'soloOff', actions: ['schoolSolo', 'startLoop', 'markLoop'] },
+                    { actions: 'schoolSolo' },
                   ],
                   'SCHOOL.BACK': [
                     { guard: 'twisting', target: '#app.game.home' },

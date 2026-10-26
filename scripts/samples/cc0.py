@@ -346,21 +346,28 @@ def report(rows):
     lines = [
         '# Sounds',
         '',
-        'Made by `scripts/samples/cc0.py`. Do not edit by hand.',
+        'The script `scripts/samples/cc0.py` writes this file, so don\'t edit it by hand.',
         '',
-        'Every sound is a recording of a real instrument from a free sample library released under CC0, the public '
-        'domain dedication of Creative Commons: anyone may use, change and share them, for any purpose, without asking '
-        'and without credit. We name the libraries anyway, with thanks.',
+        'Every sound is a recording of a real instrument from a free sample library released under CC0, which is how '
+        'Creative Commons places a work in the public domain. Anyone may use, change and share the sounds for any '
+        'purpose, without asking and without giving credit, but we name the libraries anyway, with thanks.',
         '',
         '- Virtuosity Drums and Swirly Drums, by Karoryfer Samples',
         '- Big Little Bass, by Karoryfer Samples',
         '- Osiris Piano, by Karoryfer Samples',
         '- [Versilian Community Sample Library](https://github.com/sgossner/VCSL) (VCSL), by Versilian Studios',
         '',
-        f'Nothing sounds below {FLOOR_HZ:.0f} Hz, because laptop speakers crackle below that. Lowest is the lowest strong '
-        'frequency in the file. Below 80 Hz is the share of the energy below 80 Hz. Loudness is measured above 150 Hz, '
-        'as a laptop speaker plays it, and matches the sound each one replaced. A drum with four takes is played one '
-        'take after another, never the same one twice running.',
+        f'Nothing sounds below {FLOOR_HZ:.0f} Hz, because laptop speakers crackle below that frequency. Each sound is as '
+        'loud above 150 Hz, the way a laptop speaker plays it, as the sound it replaced. A drum with four takes plays '
+        'them one after another, never the same take twice in a row.',
+        '',
+        'The columns of the table are described below.',
+        '',
+        '- Root is the note a pitched sound was recorded at, and Lowest is the lowest strong frequency in the file.',
+        '- Below 80 Hz is the share of the energy below 80 Hz, and Centroid is the average frequency weighted by '
+        'energy, so a higher centroid sounds brighter.',
+        '- Peak is the loudest point, in decibels below the digital maximum (dBFS), and Loudness is measured above '
+        '150 Hz.',
         '',
         '| Sound | Name | Library | Takes | Root | Lowest | Below 80 Hz | Centroid | Peak | Loudness | Length |',
         '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
@@ -368,7 +375,7 @@ def report(rows):
     for r in rows:
         lines.append(f"| `{r['sid']}` | {r['label']} | {r['pack']} | {r['takes']} | {note(r['root'])} | {r['low']:.0f} Hz | "
                      f"{r['floor']:.0f} dB | {r['cent']:.0f} Hz | {r['peak']:.1f} dBFS | {r['loud']:.1f} dB | {r['seconds']:.2f} s |")
-    lines += ['', '## Source files', '', 'The first take of each sound, in its library:', '']
+    lines += ['', '## Source files', '', 'Each sound was made from the files below, which are in its library. For a drum with four takes, the list shows the first take:', '']
     for r in rows:
         lines.append(f"- `{r['sid']}`: " + ', '.join(f'`{f}`' for f in r['files']))
     REPORT.write_text('\n'.join(lines) + '\n')

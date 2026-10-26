@@ -19,7 +19,7 @@ coverage/
 *.pdf
 *.pages
 Screenshots/
-docs/school-screens/
+docs/
 design/*.html
 design/icon/icon-1024.png
 

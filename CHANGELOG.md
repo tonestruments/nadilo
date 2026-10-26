@@ -2,6 +2,12 @@
 
 Each version of Nadilo and what changed in it, newest first.
 
+## 0.4.6 (2026-10-24)
+
+- Every level except Story has a Solo button next to Up close. Solo plays only the part the level is about, so you can
+  hear what that part sounds like. In a drums level it plays the whole kit. It works with The song and with Yours.
+- Up close and Solo now share one pill, and only one of them can be on at a time.
+
 ## 0.4.5 (2026-10-20)
 
 - Every sound is now a recording of a real instrument, from free sample libraries in the public domain (CC0). The

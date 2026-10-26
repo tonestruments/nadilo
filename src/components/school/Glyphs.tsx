@@ -27,13 +27,6 @@ export function Stitch({ lane, hole = false }: { lane: Lane; hole?: boolean }) {
 
 const icon = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round', strokeLinejoin: 'round', strokeWidth: 2 } as const;
 
-/** Up close: two of the four rows of the song, the rest faded. */
-export const CloseIcon = () => (
-  <svg className="s-ico" viewBox="0 0 24 24" aria-hidden {...icon}>
-    <path d="M4 6h16" opacity="0.3" /><path d="M4 10h16" /><path d="M4 14h16" /><path d="M4 18h16" opacity="0.3" />
-  </svg>
-);
-
 export const ChevronIcon = ({ dir }: { dir: 'left' | 'right' }) => (
   <svg viewBox="0 0 24 24" className="s-ico" aria-hidden {...icon} strokeWidth={2.4}>
     <path d={dir === 'left' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'} />

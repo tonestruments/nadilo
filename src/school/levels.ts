@@ -61,7 +61,7 @@ export interface Level {
   holes: 'all' | 'bar1' | 'beat1' | 'none';
   /** The copy tools are out. */
   copy: boolean;
-  /** Up close: what is heard with this level's part. Never the part alone. */
+  /** Up close: what is heard with this level's part (Solo is the part alone). */
   partner: readonly Row[];
   /** The bar (or section) the level opens on. */
   open: number;

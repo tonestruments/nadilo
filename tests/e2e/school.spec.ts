@@ -198,6 +198,21 @@ test('The song or Yours, either Up close: a press plays, a switch never stops it
   await expect(page.getByTestId('play')).toHaveAttribute('aria-label', 'Play');
 });
 
+test('Solo plays the part on its own, for either, and Up close and Solo take turns', async ({ page }) => {
+  await openSchool(page, 'floor');
+  await page.getByTestId('listen-solo').click();
+  await expect(page.getByTestId('listen-solo')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('play')).toHaveAttribute('aria-label', 'Stop');
+  await page.getByTestId('listen-close').click();
+  await expect(page.getByTestId('listen-solo')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByTestId('listen-close')).toHaveAttribute('aria-pressed', 'true');
+  await page.getByTestId('listen-solo').click();
+  await expect(page.getByTestId('listen-close')).toHaveAttribute('aria-pressed', 'false');
+  await page.getByTestId('listen-mine').click();
+  await expect(page.getByTestId('listen-solo')).toHaveAttribute('aria-pressed', 'true'); // yours, on its own
+  await expect(page.getByTestId('play')).toHaveAttribute('aria-label', 'Stop');
+});
+
 test('Back goes one step back along School, and the title bar shows one world at a time', async ({ page }) => {
   await openSchool(page, 'floor');
   await expect(page.getByTestId('journey-world')).toContainText('The Floor');

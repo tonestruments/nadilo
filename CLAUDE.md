@@ -65,11 +65,14 @@ deleted.
   (`songPart`, `partProgram`); pressed again, the whole song plays on from where it is; a move outside it lets it go
   (`songAt`; a song picked up part-way plays what would still be ringing). A playback replaced by one of the same
   kind reports no end (`stop(quiet)`), so a move never jumps back to the old place (0.4.3 did).
-- **Never take the song away; never play the song's part on its own.** An A and a B (`Listen` in `rules.ts`),
+- **Never take the song away.** An A and a B (`Listen` in `rules.ts`),
   switched live on the next step: **The song** (the song with the parts already rebuilt in place of its own) and
-  **Yours** (the song with the player's notes for this part). **Up close** (`Room.close`) works for either: this
-  level's part with its `partner`, so the player can hear their own part with its partner, never the song's part alone.
-  Pressing the one that is playing stops it; Up close with nothing playing plays. Rows not rebuilt yet are the song's:
+  **Yours** (the song with the player's notes for this part). Two ways to leave parts out work for either, in one pill
+  (**Up close | Solo**, at most one on): **Up close** (`Room.close`) is this level's part with its `partner`; **Solo**
+  (`Room.solo`) is this level's part and nothing else, the whole kit in a drums level (`sourcesFor`). Until 0.4.5 the
+  song's part was never heard alone (it gives the answer away); after the 0.4.5 playtest the user asked for it in
+  every level, to hear what the part itself sounds like (2026-10-24). Story has neither: its part is the arrangement.
+  Pressing the one that is playing stops it; Up close or Solo with nothing playing plays. Rows not rebuilt yet are the song's:
   heard, never drawn (basted). Any edit switches to Yours. The loop names what it loops (**Bar n / All 4 bars**, in
   Story **the section / Whole song**: `scope`) and **Slow** (three quarters of the tempo) change the loop live too.
 - **One bar on screen.** The instrument shows one bar, big; the strip above it shows the four bars in miniature and

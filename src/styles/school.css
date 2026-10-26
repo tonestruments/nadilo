@@ -101,7 +101,7 @@
 .s-sbtn.s-keep { background: var(--s-yours); color: var(--s-ink); box-shadow: none; font-weight: 750; }
 .s-sbtn:disabled { opacity: 0.4; }
 .s-sbtn[aria-pressed='true'] { background: var(--s-ink); color: var(--s-on-ink); box-shadow: none; }
-:is(.s-sbtn, .s-sicon, .s-chip, .s-seg, .s-splay, .s-tile, .s-swatch, .s-band, .s-block, .s-jn)[data-hidden] { visibility: hidden; }
+:is(.s-sbtn, .s-sicon, .s-chip, .s-seg, .s-splay, .s-tile, .s-swatch, .s-band, .s-block, .s-jn, .s-ab)[data-hidden] { visibility: hidden; }
 .s-sicon {
   position: relative; display: grid; place-items: center; inline-size: 2.25rem; block-size: 2.25rem;
   border-radius: 50%; color: var(--s-mute);
@@ -425,6 +425,9 @@
 .s-ab { display: inline-flex; align-items: center; gap: 0.1rem; padding: 0.2rem; border-radius: 99px; background: var(--s-wash); }
 .s-ab .s-seg { padding-inline: 0.95rem; font-size: var(--s-step-0); }
 .s-ab .s-seg[aria-checked='true'] { background: var(--s-ink); color: var(--s-on-ink); }
+/* Up close | Solo: two switches in one pill, at most one on. Smaller words than the A and the B, which they serve. */
+.s-ab.s-near .s-seg { padding-inline: 0.75rem; font-size: var(--s-step--1); }
+.s-ab.s-near .s-seg[aria-pressed='true'] { background: var(--s-ink); color: var(--s-on-ink); }
 .s-transport { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: 0.6rem; }
 /* Play sits on the centre line, under the title and the middle of the cloth: the loop to its left, Slow to its right. */
 .s-transport > :first-child { justify-self: end; }
@@ -569,7 +572,7 @@
 
 /* ── focus, hover and press ── */
 :is(.s-school-screen, .s-journey) :focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-.s-sbtn.s-primary:focus-visible, .s-splay:focus-visible, .s-ab .s-seg[aria-checked='true']:focus-visible { outline-color: var(--s-ink); }
+.s-sbtn.s-primary:focus-visible, .s-splay:focus-visible, .s-ab .s-seg:is([aria-checked='true'], [aria-pressed='true']):focus-visible { outline-color: var(--s-ink); }
 
 @media (hover: hover) and (pointer: fine) {
   .s-sbtn:not(.s-primary):not(:disabled):hover, .s-sicon:not(:disabled):hover, .s-jarrow:not(:disabled):hover, .s-chip:hover,

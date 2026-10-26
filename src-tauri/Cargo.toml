@@ -1,6 +1,6 @@
 [package]
 name = "nadilo"
-version = "0.4.5"
+version = "0.4.6"
 description = "Nadilo: make a song, one part at a time."
 authors = ["Tonestruments AB"]
 license = "GPL-3.0-only"

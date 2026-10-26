@@ -4,8 +4,6 @@ Nadilo is a Mac app that teaches you how a song is made by letting you rebuild o
 or any music theory to play it. You start by tapping four pads to make a beat. Level by level, you then add a snare,
 hi-hats, a bass line, chords and a tune, until you have arranged the whole song.
 
-If you want the longer story of why we are building it, read [what we are trying to do](docs/VISION.md).
-
 ## Try it on your Mac
 
 You can download the DMG from [Releases](https://github.com/tonestruments/nadilo/releases). The releases are test
@@ -23,8 +21,8 @@ when you play. With headphones, you can hear more of the bass.
 Nadilo School is the main part of the app. It plays you a short song, and then you rebuild the song one part and one
 bar at a time, while the rest of the song keeps playing. At any time, you can switch between The song and Yours, which
 is the song with your notes in it. You can also hear either of them Up close, which plays your part with the part it
-plays with. Or you can loop one bar, or slow the song down. Stars show how close you came to the song, and you never
-need all three stars to move on.
+plays with, or Solo, which plays your part on its own. Or you can loop one bar, or slow the song down. Stars show how
+close you came to the song, and you never need all three stars to move on.
 
 | World | What you rebuild | What you learn |
 | --- | --- | --- |
@@ -40,8 +38,8 @@ you have kept one, Home offers one small change to your song each day.
 Ear training is a second set of 13 levels on Home. You hear a hidden beat and rebuild it by ear, with a coach that
 gives you a hint when you ask for one.
 
-The app keeps its words short on purpose, and the [guide](docs/school.md) explains every level. Space plays and
-stops the song, and the left and right arrows move between bars. Command-Z undoes your last change.
+The app keeps its words short on purpose. Space plays and stops the song, and the left and right arrows move between
+bars. Command-Z undoes your last change.
 
 ## Your progress stays on your Mac
 
@@ -55,8 +53,7 @@ Every sound is a recording of a real instrument, from free sample libraries that
 Virtuosity Drums, Swirly Drums, Big Little Bass and Osiris Piano by Karoryfer Samples, and the Versilian Community
 Sample Library by Versilian Studios. We thank both of them. `scripts/samples/cc0.py` cuts and tunes the recordings
 for the app. Nothing sounds below 80 Hz, because laptop speakers crackle below 80 Hz. Each drum has four takes that
-take turns, so a beat doesn't sound like the same recording played again and again. The measurements are in
-[docs/SOUNDS.md](docs/SOUNDS.md).
+take turns, so a beat doesn't sound like the same recording played again and again.
 
 The DMGs that Tonestruments released up to version 0.4.3 used sounds from Cymatics sample packs, which are licensed
 to Tonestruments. We thank Cymatics for letting us ship them inside the app. The Cymatics sounds are not part of
@@ -90,7 +87,6 @@ If you add `?fake-audio` to the address (http://localhost:1420/?fake-audio), the
 | `src/game/` | The ear-training game |
 | `src/machine/` | The state machine that runs the app, and saving progress |
 | `src/audio/` | The audio engine, the sounds and the mix |
-| `docs/` | The guide, the vision, the design and the sound measurements |
 | `tests/` | Unit tests, end-to-end tests, and audio tests that render sound offline and measure it |
 
 `CLAUDE.md` lists the detailed rules the app follows, e.g., that nothing on screen moves between levels and that

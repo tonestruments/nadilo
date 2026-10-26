@@ -227,6 +227,23 @@ describe('what plays', () => {
     expect(close).toEqual({ hat: null, snare: null, kick: 'mine', bass: 'mine', chords: null, melody: null });
   });
 
+  it('Solo plays only this level\'s part, in either: the whole kit in a drums level', () => {
+    const drums = sourcesFor(by('clapback'), new Set<Row>(['kick']), 'song', false, new Set(), true);
+    expect(drums).toEqual({ hat: 'song', snare: 'song', kick: 'mine', bass: null, chords: null, melody: null });
+    const bass = sourcesFor(by('floor'), new Set<Row>(['kick', 'snare', 'hat']), 'mine', false, new Set(), true);
+    expect(bass).toEqual({ hat: null, snare: null, kick: null, bass: 'mine', chords: null, melody: null });
+    for (const l of LEVELS.filter((x) => x.editor.kind !== 'arr')) {
+      const solo = sourcesFor(l, new Set(), 'song', false, new Set(), true);
+      expect(VOICED.filter((r) => solo[r] !== null).every((r) => l.focus.includes(r) || ['kick', 'snare', 'hat'].includes(r)), l.id).toBe(true);
+      expect(VOICED.some((r) => solo[r] !== null), l.id).toBe(true);
+    }
+    // Your colours: the bass moves with the colour, but Solo is the colour alone.
+    const colours = sourcesFor(by('yours-color'), new Set<Row>(['kick', 'snare', 'hat', 'bass', 'chords']), 'mine', false, new Set(), true);
+    expect(colours).toEqual({ hat: null, snare: null, kick: null, bass: null, chords: 'own', melody: null });
+    const p = loopProgram(() => view('tune', { solo: true }));
+    expect(new Set(Array.from({ length: 64 }, (_, i) => voicesAt(p, i)).flat())).toEqual(new Set(['lead']));
+  });
+
   it('loops the bar on screen, or all four', () => {
     const v = view('copy', { scope: 'one', unit: 2 });
     expect(loopBar(v, 0)).toBe(2);

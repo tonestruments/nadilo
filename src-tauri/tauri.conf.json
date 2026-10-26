@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Nadilo Desktop",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "identifier": "se.tonestruments.nadilo",
   "build": {
     "frontendDist": "../dist",

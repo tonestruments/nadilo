@@ -607,6 +607,23 @@ describe('school', () => {
     expect(ctx().room.close).toBe(false);
   });
 
+  it('Solo with nothing playing plays it; Solo and Up close turn each other off', () => {
+    const { engine, send, ctx } = inSchool('heartbeat');
+    send({ type: 'SCHOOL.SOLO' });
+    expect(ctx().playing).toBe('school');
+    expect(ctx().room.solo).toBe(true);
+    send({ type: 'SCHOOL.CLOSE' });
+    expect(ctx().room).toMatchObject({ close: true, solo: false });
+    send({ type: 'SCHOOL.SOLO' });
+    expect(ctx().room).toMatchObject({ close: false, solo: true });
+    send({ type: 'SCHOOL.LISTEN', listen: 'mine' });
+    expect(ctx().room.solo).toBe(true); // Solo holds for Yours too
+    expect(programs(engine)).toEqual(['program:school']); // one playback, switched live
+    send({ type: 'SCHOOL.SOLO' });
+    expect(ctx().playing).toBe('school'); // turning it off keeps the music going
+    expect(ctx().room.solo).toBe(false);
+  });
+
   it('Back goes a step back: the level before, the song before the first level, Home from the song', () => {
     const { send, ctx, s } = inSchool('clapback', ['heartbeat', 'copy']);
     send({ type: 'SCHOOL.BACK' });

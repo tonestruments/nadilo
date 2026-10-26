@@ -5,7 +5,7 @@ import { send, useApp } from '../../machine/actor';
 import { WORLDS, type Scope } from '../../school/levels';
 import { buildFor, endsWorld, levelsFor, type Listen } from '../../school/rules';
 import { PauseIcon, PlayIcon, ArrowIcon } from '../Icons';
-import { CloseIcon, HintIcon, LoopIcon, SlowIcon } from './Glyphs';
+import { HintIcon, LoopIcon, SlowIcon } from './Glyphs';
 import { press, selectLevel, useDone, useLevel, useRoom, useSong } from './use';
 
 const WHOSE: readonly { id: Listen; label: string; tip: string }[] = [
@@ -17,7 +17,7 @@ const WHOSE: readonly { id: Listen; label: string; tip: string }[] = [
  * How to listen while you work, under the instrument. The song or Yours: an A and a B of the same bars. Pressing one
  * plays it, switches to it on the next step if the other plays (so the two are heard at the same moment of the bar),
  * or stops it if it is the one playing. When they sound the same, the part is right. Up close, for either, keeps only
- * this part and the one it plays with. Then what the loop covers (the bar on screen, or all four), Slow, and the way on.
+ * this part and the one it plays with; Solo keeps only this part. Then what the loop covers (the bar on screen, or all four), Slow, and the way on.
  */
 export function Dock() {
   const level = useLevel();
@@ -52,8 +52,13 @@ export function Dock() {
               {...press(() => send({ type: 'SCHOOL.LISTEN', listen: l.id }))}>{l.label}</button>
           ))}
         </div>
-        <button type="button" className="s-seg s-toggle" aria-pressed={room.close} data-testid="listen-close" title="This part and the one it plays with"
-          data-hidden={arr ? '' : undefined} tabIndex={arr ? -1 : 0} {...press(() => send({ type: 'SCHOOL.CLOSE' }))}><CloseIcon />Up close</button>
+        {/* Two ways to leave parts out, in one pill: at the smallest window the dock has no room for two more. */}
+        <div className="s-ab s-near" role="group" aria-label="Leave parts out" data-hidden={arr ? '' : undefined}>
+          <button type="button" className="s-seg" aria-pressed={room.close} data-testid="listen-close" title="This part and the one it plays with"
+            tabIndex={arr ? -1 : 0} {...press(() => send({ type: 'SCHOOL.CLOSE' }))}>Up close</button>
+          <button type="button" className="s-seg" aria-pressed={room.solo} data-testid="listen-solo" title="This part on its own"
+            tabIndex={arr ? -1 : 0} {...press(() => send({ type: 'SCHOOL.SOLO' }))}>Solo</button>
+        </div>
       </div>
       <div className="s-transport">
         <div className="s-scope" role="radiogroup" aria-label="Loop">
