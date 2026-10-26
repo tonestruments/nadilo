@@ -1,12 +1,18 @@
 # Builds Nadilo for macOS, and only macOS: one universal app that runs on both Apple silicon and Intel Macs. Attaches
 # the DMG and its SHA-256 checksum to a draft release.
 #
+# The DMG is attached twice: once with the version in its name, and once as Nadilo.dmg. The website links to
+# https://github.com/tonestruments/nadilo/releases/latest/download/Nadilo.dmg, which is always the DMG of the newest
+# published release that is not a draft or a pre-release, so the website never changes for a new version.
+#
 # Push a tag like v0.4.0 (it must match the version in package.json, tauri.conf.json and Cargo.toml), or run it from
 # the Actions tab ("Run workflow"). The checks in checks.yml run first; nothing is built if they fail.
 #
 # Not signed yet. Signing and notarization come with the Developer ID certificate: tauri-action signs, notarizes and
 # staples when the APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY, APPLE_ID, APPLE_PASSWORD and
 # APPLE_TEAM_ID secrets are passed to it. Do not pass them before they exist: an empty certificate fails the build.
+# Nadilo.dmg is copied from the DMG that tauri-action made, after it has signed it, so a signed build needs no change
+# here. Once the builds are signed, take the Open Anyway steps out of the release notes and the website.
 name: build
 
 on:
@@ -98,21 +104,27 @@ jobs:
             const fs = require("fs"), path = require("path"), crypto = require("crypto");
             fs.mkdirSync("out", { recursive: true });
             const lines = [];
-            for (const p of JSON.parse(process.env.PATHS)) {
-              if (!fs.statSync(p).isFile()) continue;
-              const name = path.basename(p);
+            const add = (p, name) => {
               fs.copyFileSync(p, path.join("out", name));
               lines.push(crypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex") + "  " + name);
+            };
+            const dmgs = [];
+            for (const p of JSON.parse(process.env.PATHS)) {
+              if (!fs.statSync(p).isFile()) continue;
+              add(p, path.basename(p));
+              if (p.endsWith(".dmg")) dmgs.push(p);
             }
+            if (dmgs.length !== 1) { console.error("::error::Expected one DMG, found " + dmgs.length); process.exit(1); }
+            add(dmgs[0], "Nadilo.dmg");
             fs.writeFileSync(process.env.SUMS, lines.join("\n") + "\n");
             console.log(lines.join("\n"));
           '
           echo "file=$SUMS" >> "$GITHUB_OUTPUT"
 
-      - name: Attach the checksums to the release
+      - name: Attach Nadilo.dmg and the checksums to the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ steps.version.outputs.tag }}" "${{ steps.sums.outputs.file }}" --clobber
+        run: gh release upload "${{ steps.version.outputs.tag }}" out/Nadilo.dmg "${{ steps.sums.outputs.file }}" --clobber
 
       - uses: actions/upload-artifact@v4
         with:
